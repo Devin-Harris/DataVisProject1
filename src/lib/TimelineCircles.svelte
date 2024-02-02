@@ -1,5 +1,6 @@
 <script lang="ts">
   import * as d3 from 'd3';
+  import { onMount } from 'svelte';
 
   type ConfigType = {
     parentElement: string;
@@ -111,7 +112,7 @@
         .append('g')
         .attr('class', 'axis y-axis')
         .call(this.yAxis);
-
+      console.log('here');
       this.updateVis();
     }
 
@@ -148,15 +149,17 @@
   }
 
   export let data: DataType[];
-  console.log(data);
-  let timelineCircles = new TimelineCircles(
-    {
-      parentElement: '#timeline',
-      containerHeight: 1100,
-      containerWidth: 1000,
-    },
-    data,
-  );
+
+  onMount(() => {
+    let timelineCircles = new TimelineCircles(
+      {
+        parentElement: '#timeline',
+        containerHeight: 1100,
+        containerWidth: 1000,
+      },
+      data,
+    );
+  });
 </script>
 
 <svg id="timeline"></svg>
