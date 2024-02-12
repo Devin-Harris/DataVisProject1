@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Home from './lib/Home.svelte';
+  import Main from './lib/Main.svelte';
 </script>
 
 <main>
-  <Home />
+  <Main />
 </main>
 
 <style lang="scss">
