@@ -7,6 +7,7 @@
     type ChartConfig,
   } from '../../models/chart-config.model';
   import type { FormStoreState } from '../../models/form-store.model';
+  import { GroupByType } from '../../models/group-by-type.enum';
   import type { NationalHealthProcessedDataModel } from '../../models/nationalHealthData.model';
   import { formStore } from '../../stores/form-store';
   import { legendStore } from '../../stores/legend-store';
@@ -101,20 +102,18 @@
     // Initialize linear and ordinal scales (input domain and output range)
     const att1Values = data.map((d) => d[formData.attribute1] as number);
     const att2Values = data.map((d) => d[formData.attribute2] as number);
-    const minAtt = Math.min(...att1Values, ...att2Values);
-    const maxAtt = Math.max(...att1Values, ...att2Values);
 
     xScale = d3
-      .scaleBand()
-      .domain(
-        data.map((d: NationalHealthProcessedDataModel) =>
-          getGroupByValue(formData.groupBy, d),
-        ),
-      )
+      .scaleLinear()
+      .domain([Math.min(...att1Values), Math.max(...att1Values)])
       .range([0, width])
-      .padding(0.1);
+      .nice();
 
-    yScale = d3.scaleLinear().domain([maxAtt, minAtt]).range([0, height]);
+    yScale = d3
+      .scaleLinear()
+      .domain([Math.max(...att2Values), Math.min(...att2Values)])
+      .range([0, height])
+      .nice();
   }
 
   function drawAxises() {
@@ -133,7 +132,7 @@
       .attr('y', 25)
       .style('text-anchor', 'middle')
       .attr('fill', '#5D6971')
-      .text(formData.groupBy);
+      .text(attributesMap[formData.attribute1]);
 
     yAxisGroup = chart.append('g').attr('class', 'axis y-axis').call(yAxis);
     yAxisGroup
@@ -144,19 +143,25 @@
       .attr('x', -1 * (height / 2))
       .style('text-anchor', 'middle')
       .attr('fill', '#5D6971')
-      .text(
-        `${attributesMap[formData.attribute1]} & ${
-          attributesMap[formData.attribute2]
-        }`,
-      );
+      .text(attributesMap[formData.attribute2]);
   }
 
   function buildColorPalette() {
+    // Construct a new ordinal scale with a range of ten categorical colours
     colorPalette = d3.scaleOrdinal(d3.schemeTableau10);
-    colorPalette.domain([
-      attributesMap[formData.attribute1],
-      attributesMap[formData.attribute2],
-    ]);
+    colorPalette.domain(
+      data
+        .map((d) =>
+          getGroupByValue(
+            // Color by state if showing data for each county to prevent duplicate coloring from so many counties
+            formData.groupBy === GroupByType.County
+              ? GroupByType.State
+              : formData.groupBy,
+            d,
+          ),
+        )
+        .sort(),
+    );
     legendStore.set({ colorPalette });
   }
 
@@ -176,8 +181,8 @@
     drawSvgContainers();
     buildScales();
     buildColorPalette();
-    drawAxises();
     drawData();
+    drawAxises();
   }
 
   function drawData() {
@@ -186,59 +191,49 @@
     }
 
     const dataGroup = chart.append('g').attr('class', 'data-group');
-    const rectangleGroups = dataGroup
-      .selectAll('g')
+    const circles = dataGroup
+      .selectAll('circle')
       .data(data)
-      .join('g')
-      .attr('class', 'rectangle-group')
-      .attr('x', (d: NationalHealthProcessedDataModel) =>
-        xScale(getGroupByValue(formData.groupBy, d)),
+      .join('circle')
+      .attr('class', 'data-circle')
+      .attr('cx', (d: NationalHealthProcessedDataModel) =>
+        formData.attribute1 ? xScale(d[formData.attribute1]) : width + 100,
       )
-      .attr('y', 0)
-      .attr('width', xScale.bandwidth())
-      .attr('height', height);
+      .attr('cy', (d: NationalHealthProcessedDataModel) =>
+        formData.attribute2 ? yScale(d[formData.attribute2]) : height + 100,
+      )
+      .attr(
+        'r',
+        formData.groupBy === GroupByType.State
+          ? 20
+          : formData.groupBy === GroupByType.UrbanRuralStatus
+            ? 40
+            : 5,
+      )
+      .attr('fill', (d: NationalHealthProcessedDataModel) =>
+        colorPalette(
+          getGroupByValue(
+            // Color by state if showing data for each county to prevent duplicate coloring from so many counties
+            formData.groupBy === GroupByType.County
+              ? GroupByType.State
+              : formData.groupBy,
+            d,
+          ),
+        ),
+      )
+      .attr('opacity', 0.8)
+      .attr('stroke', 'gray')
+      .attr('stroke-width', 1);
 
-    const buildRects = (
-      attribute: keyof Pick<FormStoreState, 'attribute1' | 'attribute2'>,
-    ) => {
-      return rectangleGroups
-        .append('rect')
-        .attr('fill', (d: NationalHealthProcessedDataModel) =>
-          colorPalette(attributesMap[formData[attribute]]),
-        )
-        .attr(
-          'x',
-          (d: NationalHealthProcessedDataModel) =>
-            xScale(getGroupByValue(formData.groupBy, d)) +
-            (attribute === 'attribute2' ? xScale.bandwidth() / 2 + 1 : 0),
-        )
-        .attr('y', (d: NationalHealthProcessedDataModel) =>
-          formData[attribute] ? yScale(d[formData[attribute]]) : height + 100,
-        )
-        .attr('width', Math.max(xScale.bandwidth() / 2 - 1, 0))
-        .attr('height', (d: NationalHealthProcessedDataModel) => {
-          return height - Math.max(yScale(d[formData[attribute]]) ?? 0, 0);
-        });
-    };
-    let att1Rects = buildRects('attribute1');
-    let att2Rects = buildRects('attribute2');
-
-    att1Rects
+    circles
       .on(
         'mouseover',
         (event: MouseEvent, d: NationalHealthProcessedDataModel) =>
-          mouseOverTooltipCB(event, d, 'attribute1'),
-      )
-      .on('mouseleave', mouseLeaveTooltipCB);
-    att2Rects
-      .on(
-        'mouseover',
-        (event: MouseEvent, d: NationalHealthProcessedDataModel) =>
-          mouseOverTooltipCB(event, d, 'attribute2'),
+          mouseOverTooltipCB(event, d),
       )
       .on('mouseleave', mouseLeaveTooltipCB);
 
-    const tooltip = d3.select('.bar-chart-container .tooltip');
+    const tooltip = d3.select('.scatter-chart-container .tooltip');
     tooltip.on('mouseover', () => {
       tooltip.style('opacity', 1).style('pointer-events', 'all');
     });
@@ -250,9 +245,8 @@
   function mouseOverTooltipCB(
     event: MouseEvent,
     d: NationalHealthProcessedDataModel,
-    attribute: keyof Pick<FormStoreState, 'attribute1' | 'attribute2'>,
   ) {
-    const tooltip = d3.select('.bar-chart-container .tooltip');
+    const tooltip = d3.select('.scatter-chart-container .tooltip');
     const tooltipElm = tooltip.node() as HTMLElement;
     const tooltipBounds = tooltipElm.getBoundingClientRect();
     const chartBounds = chartContainer.getBoundingClientRect();
@@ -274,38 +268,34 @@
         ) + 'px',
       ).html(`
           <small>${d.display_name}</small>
-          ${
-            attribute === 'attribute1'
-              ? `<p>
-                <strong>${attributesMap[formData.attribute1]}</strong>
-                <i>(${formData.groupByAggregate})</i> 
-                </p>
-              <p>${d[formData.attribute1]}</p>`
-              : `
-             <p>
-              <strong>${attributesMap[formData.attribute2]}</strong>
-              <i>(${formData.groupByAggregate})</i> 
-              </p>
-            <p>${d[formData.attribute2]}</p>`
-          }
+          <p>
+            <strong>${attributesMap[formData.attribute1]}</strong>
+            <i>(${formData.groupByAggregate})</i> 
+            </p>
+          <p>${d[formData.attribute1]}</p>
+              
+          <p>
+            <strong>${attributesMap[formData.attribute2]}</strong>
+            <i>(${formData.groupByAggregate})</i> 
+            </p>
+          <p>${d[formData.attribute2]}</p>
         `);
   }
-
   function mouseLeaveTooltipCB(event: MouseEvent) {
-    d3.select('.bar-chart-container .tooltip')
+    d3.select('.scatter-chart-container .tooltip')
       .style('opacity', '0')
       .style('pointer-events', 'none');
   }
 </script>
 
-<div class="bar-chart-container" bind:this={chartContainer}>
+<div class="scatter-chart-container" bind:this={chartContainer}>
   <svg></svg>
 
   <div class="tooltip"></div>
 </div>
 
 <style lang="scss">
-  .bar-chart-container {
+  .scatter-chart-container {
     height: 100%;
     width: 100%;
     position: relative;

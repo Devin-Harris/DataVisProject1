@@ -6,7 +6,7 @@
   import { GroupByAggregate } from '../../models/group-by-average.enum';
   import { GroupByType } from '../../models/group-by-type.enum';
   import type { NationalHealthProcessedDataModel } from '../../models/nationalHealthData.model';
-  import { formStore } from '../../stores/form-store';
+  import { formStore, initialFormStore } from '../../stores/form-store';
 
   const attributesToExclude: (keyof NationalHealthProcessedDataModel)[] = [
     'cnty_fips',
@@ -26,7 +26,7 @@
         classes: ['form-control'], // optional
         label: 'Chart Type',
       },
-      value: ChartType.Bar,
+      value: initialFormStore.chartType,
       extra: {
         options: [
           { value: ChartType.Scatter, title: ChartType.Scatter },
@@ -46,8 +46,7 @@
         classes: ['form-control'], // optional
         label: 'Attribute 1',
       },
-      value:
-        'number_of_primary_care_physicians' as keyof NationalHealthProcessedDataModel,
+      value: initialFormStore.attribute1,
       extra: {
         options: Object.keys(attributesMap)
           .filter(
@@ -72,8 +71,7 @@
         classes: ['form-control'], // optional
         label: 'Attribute 2',
       },
-      value:
-        'percent_high_blood_pressure' as keyof NationalHealthProcessedDataModel,
+      value: initialFormStore.attribute2,
       extra: {
         options: Object.keys(attributesMap)
           .filter(
@@ -98,7 +96,7 @@
         classes: ['form-control'], // optional
         label: 'Group by',
       },
-      value: GroupByType.County,
+      value: initialFormStore.groupBy,
       extra: {
         options: [
           { value: GroupByType.County, title: GroupByType.County },
@@ -118,7 +116,7 @@
         classes: ['form-control'], // optional
         label: 'Group by Aggregate',
       },
-      value: GroupByAggregate.Avg,
+      value: initialFormStore.groupByAggregate,
       extra: {
         options: [
           { value: GroupByAggregate.Avg, title: GroupByAggregate.Avg },
@@ -145,6 +143,10 @@
       return { ...e, ...event.detail };
     });
   };
+
+  formStore.subscribe((formData) => {
+    fields[4].attributes.disabled = formData.groupBy === GroupByType.County;
+  });
 </script>
 
 <div class="form-container">

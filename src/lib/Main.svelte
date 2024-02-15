@@ -4,15 +4,32 @@
   import { onMount } from 'svelte';
   import ChartContainer from './components/charts/ChartContainer.svelte';
   import Form from './components/form/Form.svelte';
+  import { groupData } from './components/utils/group-data';
+  import type { FormStoreState } from './models/form-store.model';
+  import type { LegendStoreState } from './models/legend-store.model';
   import type {
     NationalHealthDataModel,
     NationalHealthProcessedDataModel,
   } from './models/nationalHealthData.model';
+  import { formStore } from './stores/form-store';
+  import { legendStore } from './stores/legend-store';
 
   let data: NationalHealthProcessedDataModel[] | null = null;
 
+  $: groupedData = groupData(formData, data ?? []);
+
   onMount(async () => {
     data = await getData();
+  });
+
+  let formData: FormStoreState;
+  formStore.subscribe((s) => {
+    formData = { ...s };
+  });
+
+  let legendData: LegendStoreState;
+  legendStore.subscribe((s) => {
+    legendData = { ...s };
   });
 
   async function getData() {
@@ -69,10 +86,23 @@
   {#if data}
     <div class="lhs">
       <Form />
+
+      <fieldset class="legend">
+        <legend>Legend </legend>
+        <div class="legend-colors">
+          {#each legendData.colorPalette.domain() as domain}
+            <p>
+              <span style="background: {legendData.colorPalette(domain)}"
+              ></span>
+              {domain}
+            </p>
+          {/each}
+        </div>
+      </fieldset>
     </div>
 
     <div class="rhs">
-      <ChartContainer {data} />
+      <ChartContainer data={groupedData} />
     </div>
   {/if}
 </div>
@@ -87,6 +117,50 @@
 
     .lhs {
       padding: 1em;
+      width: 25em;
+      max-width: 25em;
+      height: 100%;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+
+      :global(.form-container) {
+        width: 100%;
+      }
+
+      .legend {
+        padding: 1em;
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        .legend-colors {
+          width: 100%;
+          overflow: auto;
+          display: flex;
+          flex-wrap: wrap;
+          // grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          p {
+            margin-bottom: 0.5em;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-right: 0.5em;
+            min-width: 50px;
+            span {
+              height: 1em;
+              width: 1em;
+              margin-right: 0.25em;
+              display: block;
+            }
+          }
+        }
+      }
     }
     .rhs {
       padding: 1em;

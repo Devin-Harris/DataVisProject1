@@ -3,26 +3,23 @@
   import type { FormStoreState } from '../../models/form-store.model';
   import type { NationalHealthProcessedDataModel } from '../../models/nationalHealthData.model';
   import { formStore } from '../../stores/form-store';
-  import { groupData } from '../utils/group-data';
   import BarChart from './BarChart.svelte';
+  import ScatterChart from './ScatterChart.svelte';
 
   export let data: NationalHealthProcessedDataModel[] = [];
 
-  $: groupedData = groupData(formData, data);
-
-  let formData: FormStoreState;
-
   let _chartTypes = ChartType;
 
+  let formData: FormStoreState;
   formStore.subscribe((s) => {
-    formData = { ...s };
+    formData = s;
   });
 </script>
 
 {#if formData.chartType === _chartTypes.Scatter}
-  <p>scatter</p>
+  <ScatterChart {data} />
 {:else if formData.chartType === _chartTypes.Bar}
-  <BarChart data={groupedData} />
+  <BarChart {data} />
 {:else if formData.chartType === _chartTypes.Choropleth}
   <p>Choropleth</p>
 {:else}
