@@ -260,8 +260,7 @@
       ).html(`
           <small>${d.display_name}</small>
           <p>
-            <strong>${attributesMap[formData[attribute]]}</strong>
-            <i>(${formData.groupByAggregate})</i> 
+            <strong>${attributesMap[formData[attribute]]}</strong> 
             </p>
           <p>${d[formData[attribute]]}</p>
         `);

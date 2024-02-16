@@ -91,7 +91,7 @@
   <button on:click={toggleAttribute}>Toggle Chart Attribute</button>
 
   <div class="selected-content">
-    {#if choroplethData.selectedData}
+    {#if choroplethData && choroplethData.selectedData}
       {#each choroplethData.selectedData as d}
         <br />
         <div class="content">

@@ -115,6 +115,7 @@
         id: 'groupByAggregate', // required
         classes: ['form-control'], // optional
         label: 'Group by Aggregate',
+        disabled: true,
       },
       value: initialFormStore.groupByAggregate,
       extra: {
@@ -145,9 +146,10 @@
   };
 
   formStore.subscribe((formData) => {
-    fields[4].attributes.disabled = formData.groupBy === GroupByType.County;
     fields[3].attributes.disabled = formData.chartType === ChartType.Choropleth;
-    fields[4].attributes.disabled = formData.chartType === ChartType.Choropleth;
+    fields[4].attributes.disabled =
+      formData.groupBy === GroupByType.County ||
+      formData.chartType === ChartType.Choropleth;
   });
 </script>
 
