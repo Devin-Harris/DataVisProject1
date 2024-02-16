@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as d3 from 'd3';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { attributesMap } from '../../models/attributes.model';
   import {
     defaultChartConfig,
@@ -13,7 +13,7 @@
   import { getGroupByValue } from '../utils/group-data';
 
   // Props
-  export const configOverrides: Partial<ChartConfig> = {};
+  export let configOverrides: Partial<ChartConfig> = {};
 
   export let data: NationalHealthProcessedDataModel[] = [];
 
@@ -52,10 +52,13 @@
 
   // Methods
   function setWidthAndHeight() {
-    width =
+    width = Math.max(
       (chartContainer?.getBoundingClientRect().width ?? 0) -
-      config.margin.left -
-      config.margin.right;
+        config.margin.left -
+        config.margin.right,
+      (config.minBarWidth ?? 0) * data.length,
+    );
+
     height =
       (chartContainer?.getBoundingClientRect().height ?? 0) -
       config.margin.top -
@@ -178,6 +181,13 @@
     buildColorPalette();
     drawAxises();
     drawData();
+
+    tick().then(() => {
+      if (svg && chartContainer && chartContainer.children[0]) {
+        const bbox = (chartContainer.children[0] as any).getBBox();
+        svg.attr('width', Math.ceil(bbox.width));
+      }
+    });
   }
 
   function drawData() {

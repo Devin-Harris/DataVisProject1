@@ -18,6 +18,7 @@ export interface NationalHealthProcessedDataModel {
   poverty_perc: number;
   urban_rural_status: string;
   state: string | null;
+  county_name: string;
 }
 
 export interface NationalHealthDataModel {

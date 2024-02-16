@@ -12,7 +12,7 @@ export function getGroupByValue(
     ? d.state ?? ''
     : groupBy === GroupByType.UrbanRuralStatus
     ? d.urban_rural_status
-    : d.cnty_fips;
+    : d.county_name;
 }
 
 function buildAggregateValue(

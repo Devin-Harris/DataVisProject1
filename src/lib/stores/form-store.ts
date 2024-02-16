@@ -9,7 +9,7 @@ export const initialFormStore: FormStoreState = {
   attribute2: 'number_of_hospitals' ?? null,
   groupBy: GroupByType.County,
   groupByAggregate: GroupByAggregate.Avg,
-  chartType: ChartType.Scatter,
+  chartType: ChartType.Choropleth,
 };
 
 export const formStore = writable<FormStoreState>(initialFormStore);

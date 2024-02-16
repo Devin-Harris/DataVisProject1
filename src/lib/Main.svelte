@@ -1,25 +1,28 @@
 <script lang="ts">
   import type { DSVRowArray } from 'd3';
-  import { csv } from 'd3-fetch';
+  import { csv, json } from 'd3-fetch';
   import { onMount } from 'svelte';
   import ChartContainer from './components/charts/ChartContainer.svelte';
   import Form from './components/form/Form.svelte';
+  import Legend from './components/form/Legend.svelte';
   import { groupData } from './components/utils/group-data';
   import type { FormStoreState } from './models/form-store.model';
-  import type { LegendStoreState } from './models/legend-store.model';
+  import type { GeoData } from './models/geo-data.model';
   import type {
     NationalHealthDataModel,
     NationalHealthProcessedDataModel,
   } from './models/nationalHealthData.model';
   import { formStore } from './stores/form-store';
-  import { legendStore } from './stores/legend-store';
 
   let data: NationalHealthProcessedDataModel[] | null = null;
+
+  let geoData: GeoData | null = null;
 
   $: groupedData = groupData(formData, data ?? []);
 
   onMount(async () => {
     data = await getData();
+    geoData = await getGeoData();
   });
 
   let formData: FormStoreState;
@@ -27,16 +30,22 @@
     formData = { ...s };
   });
 
-  let legendData: LegendStoreState;
-  legendStore.subscribe((s) => {
-    legendData = { ...s };
-  });
-
   async function getData() {
     const data = await csv<keyof NationalHealthDataModel>(
       './data/national_health_data.csv',
     );
     return processData(data);
+  }
+
+  async function getGeoData() {
+    const geoData: any = await json('./data/counties-10m.json');
+
+    geoData.objects.counties.geometries.forEach((d) => {
+      const match = data?.find((d1) => d1.cnty_fips === d.id);
+      d.properties.data = match;
+    });
+
+    return geoData;
   }
 
   function processData(
@@ -50,6 +59,10 @@
       if (match) {
         state = match[1];
       }
+
+      const nameWithoutQuotes = d.display_name.split('"')[1];
+      const nameWithoutQuotesOrState = nameWithoutQuotes.split(', (')[0];
+      let county_name: string = nameWithoutQuotesOrState;
 
       return {
         // Number casting
@@ -77,32 +90,21 @@
 
         // Computed fields
         state,
+        county_name,
       };
     });
   }
 </script>
 
 <div class="main-container">
-  {#if data}
+  {#if groupedData && geoData}
     <div class="lhs">
       <Form />
-
-      <fieldset class="legend">
-        <legend>Legend </legend>
-        <div class="legend-colors">
-          {#each legendData.colorPalette.domain() as domain}
-            <p>
-              <span style="background: {legendData.colorPalette(domain)}"
-              ></span>
-              {domain}
-            </p>
-          {/each}
-        </div>
-      </fieldset>
+      <Legend></Legend>
     </div>
 
     <div class="rhs">
-      <ChartContainer data={groupedData} />
+      <ChartContainer data={groupedData} {geoData} />
     </div>
   {/if}
 </div>
@@ -128,38 +130,6 @@
 
       :global(.form-container) {
         width: 100%;
-      }
-
-      .legend {
-        padding: 1em;
-        height: 100%;
-        width: 100%;
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
-        .legend-colors {
-          width: 100%;
-          overflow: auto;
-          display: flex;
-          flex-wrap: wrap;
-          // grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-          p {
-            margin-bottom: 0.5em;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            margin-right: 0.5em;
-            min-width: 50px;
-            span {
-              height: 1em;
-              width: 1em;
-              margin-right: 0.25em;
-              display: block;
-            }
-          }
-        }
       }
     }
     .rhs {
