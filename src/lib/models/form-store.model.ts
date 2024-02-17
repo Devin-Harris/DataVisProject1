@@ -2,6 +2,7 @@ import type { ChartType } from './chart-type.enum';
 import type { GroupByAggregate } from './group-by-average.enum';
 import type { GroupByType } from './group-by-type.enum';
 import type { NationalHealthProcessedDataModel } from './nationalHealthData.model';
+import type { SortDirection } from './sort-direction.model';
 
 export interface FormStoreState {
   attribute1: keyof NationalHealthProcessedDataModel;
@@ -9,4 +10,6 @@ export interface FormStoreState {
   groupBy: GroupByType;
   groupByAggregate: GroupByAggregate;
   chartType: ChartType;
+  barWidth?: number;
+  barSortDirection?: SortDirection;
 }

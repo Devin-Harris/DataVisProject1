@@ -96,6 +96,20 @@
   }
 </script>
 
+<div class="title">
+  <div class="lhs">
+    <h1>Project 1 - Health in the USA</h1>
+    <h4>By Devin Harris</h4>
+  </div>
+  <div class="rhs">
+    <small
+      >Data from <a href="https://www.cdc.gov/dhdsp/maps/atlas/index.htm"
+        >https://www.cdc.gov/dhdsp/maps/atlas/index.htm</a
+      ></small
+    >
+  </div>
+</div>
+
 <div class="main-container">
   {#if groupedData && geoData}
     <div class="lhs">
@@ -110,6 +124,17 @@
 </div>
 
 <style lang="scss">
+  .title {
+    padding: 0.5em;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: flex-start;
+    h4 {
+      font-weight: 400;
+    }
+  }
   .main-container {
     display: flex;
     justify-content: center;

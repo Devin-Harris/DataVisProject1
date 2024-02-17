@@ -6,6 +6,7 @@
   import { GroupByAggregate } from '../../models/group-by-average.enum';
   import { GroupByType } from '../../models/group-by-type.enum';
   import type { NationalHealthProcessedDataModel } from '../../models/nationalHealthData.model';
+  import { SortDirection } from '../../models/sort-direction.model';
   import { formStore, initialFormStore } from '../../stores/form-store';
 
   const attributesToExclude: (keyof NationalHealthProcessedDataModel)[] = [
@@ -15,7 +16,9 @@
     'state',
   ];
 
-  const form_name = 'form';
+  const _chartTypes = ChartType;
+
+  let formData: FormStoreState;
 
   const fields: IField[] = [
     {
@@ -139,13 +142,62 @@
     },
   ];
 
+  const bar_fields: IField[] = [
+    {
+      type: 'select', // required
+      name: 'barSortDirection', // required
+      attributes: {
+        id: 'barSortDirection', // required
+        classes: ['form-control'], // optional
+        label: 'Sort Direction',
+      },
+      value: initialFormStore.barSortDirection,
+      extra: {
+        options: [
+          { value: SortDirection.None, title: SortDirection.None },
+          {
+            value: SortDirection.Alphabetically,
+            title: SortDirection.Alphabetically,
+          },
+          {
+            value: SortDirection.ReverseAlphabetically,
+            title: SortDirection.ReverseAlphabetically,
+          },
+          {
+            value: SortDirection.Attribute1Ascending,
+            title: SortDirection.Attribute1Ascending,
+          },
+          {
+            value: SortDirection.Attribute1Descending,
+            title: SortDirection.Attribute1Descending,
+          },
+          {
+            value: SortDirection.Attribute2Ascending,
+            title: SortDirection.Attribute2Ascending,
+          },
+          {
+            value: SortDirection.Attribute2Descending,
+            title: SortDirection.Attribute2Descending,
+          },
+        ],
+      },
+    },
+  ];
+
   const onChange = (event: { detail: FormStoreState }) => {
     formStore.update((e) => {
       return { ...e, ...event.detail };
     });
   };
 
-  formStore.subscribe((formData) => {
+  const onChange2 = (event: Event) => {
+    formStore.update((e) => {
+      return { ...e, barWidth: +(event.target as HTMLInputElement).value };
+    });
+  };
+
+  formStore.subscribe((fd) => {
+    formData = fd;
     fields[3].attributes.disabled = formData.chartType === ChartType.Choropleth;
     fields[4].attributes.disabled =
       formData.groupBy === GroupByType.County ||
@@ -154,7 +206,25 @@
 </script>
 
 <div class="form-container">
-  <Formly realtime {fields} {form_name} on:update={onChange} />
+  <Formly realtime {fields} form_name="form" on:update={onChange} />
+
+  {#if formData.chartType === _chartTypes.Bar}
+    <Formly
+      realtime
+      fields={bar_fields}
+      form_name="bar_form"
+      on:update={onChange}
+    />
+    <label for="bar-width-range">Minimum Bar Width</label>
+    <input
+      name="bar-width-range"
+      type="range"
+      min="1"
+      max="150"
+      bind:value={formData.barWidth}
+      on:input={onChange2}
+    />
+  {/if}
 </div>
 
 <style lang="scss">
@@ -174,6 +244,10 @@
       padding: 0.5em;
       border: 1px solid #d1d1d1;
       border-radius: 0.25em;
+    }
+
+    input {
+      width: 100%;
     }
   }
 </style>

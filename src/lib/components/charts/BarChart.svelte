@@ -174,10 +174,10 @@
       return;
     }
 
-    setWidthAndHeight();
     removeChildrenFromContainer();
-    drawSvgContainers();
+    setWidthAndHeight();
     buildScales();
+    drawSvgContainers();
     buildColorPalette();
     drawAxises();
     drawData();
@@ -185,7 +185,12 @@
     tick().then(() => {
       if (svg && chartContainer && chartContainer.children[0]) {
         const bbox = (chartContainer.children[0] as any).getBBox();
-        svg.attr('width', Math.ceil(bbox.width));
+        svg.attr(
+          'width',
+          Math.ceil(bbox.width) +
+            (config.margin.left ?? 0) +
+            (config.margin.right ?? 0),
+        );
       }
     });
   }
