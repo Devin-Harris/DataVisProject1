@@ -6,11 +6,11 @@ import { GroupByType } from '../models/group-by-type.enum';
 import { SortDirection } from '../models/sort-direction.model';
 
 export const initialFormStore: FormStoreState = {
-  attribute1: 'percent_high_blood_pressure' ?? null,
-  attribute2: 'number_of_hospitals' ?? null,
+  attribute1: 'education_less_than_high_school_percent' ?? null,
+  attribute2: 'poverty_perc' ?? null,
   groupBy: GroupByType.County,
   groupByAggregate: GroupByAggregate.Avg,
-  chartType: ChartType.Bar,
+  chartType: ChartType.Scatter,
   barWidth: 150,
   barSortDirection: SortDirection.None,
 };

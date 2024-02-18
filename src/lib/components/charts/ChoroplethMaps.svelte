@@ -1,11 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { attributesMap } from '../../models/attributes.model';
+  import { defaultChartConfig } from '../../models/chart-config.model';
   import type { ChoroplethStoreState } from '../../models/choropleth-store.model';
   import type { FormStoreState } from '../../models/form-store.model';
   import type { GeoData } from '../../models/geo-data.model';
+  import type { LegendStoreState } from '../../models/legend-store.model';
   import { choroplethStore } from '../../stores/choropleth-store';
   import { formStore } from '../../stores/form-store';
+  import { legendStore } from '../../stores/legend-store';
   import ChoroplethChart from './ChoroplethChart.svelte';
 
   export let data: GeoData;
@@ -22,6 +25,8 @@
   let choroplethData: ChoroplethStoreState;
 
   let formData: FormStoreState;
+
+  let legendData: LegendStoreState;
 
   onMount(() => {
     resize();
@@ -53,18 +58,36 @@
     formData = s;
   });
 
+  legendStore.subscribe((s) => {
+    legendData = s;
+  });
+
   function resize() {
     if (mapsContainer) {
       const bounds = mapsContainer.getBoundingClientRect();
-      map1Container.style.width = bounds.width + 'px';
-      map1Container.style.height = bounds.height + 'px';
-      map2Container.style.width = bounds.width + 'px';
+
+      const { left, top, right, bottom } = defaultChartConfig.margin;
+      const width = bounds.width - (left ?? 0) - (right ?? 0);
+      const height = bounds.height - (top ?? 0) - (bottom ?? 0);
+
+      map1Container.style.width = width + 'px';
+      map1Container.style.height = height + 'px';
+      map2Container.style.width = width + 'px';
+      map2Container.style.height = height + 'px';
     }
   }
 
   function toggleAttribute() {
     selectedAttribute =
       selectedAttribute === 'attribute1' ? 'attribute2' : 'attribute1';
+  }
+
+  function remove(d: GeoData) {
+    choroplethStore.update((s) => ({
+      selectedData: s.selectedData.filter(
+        (sd) => sd.properties.data.cnty_fips !== d.properties.data.cnty_fips,
+      ),
+    }));
   }
 </script>
 
@@ -97,13 +120,32 @@
         <div class="content">
           <p>{d.properties.data.display_name}</p>
           <p>
-            <strong>{attributesMap[formData.attribute1]}</strong>
+            <strong>
+              <span
+                style="background: {legendData.colorPalette
+                  ? legendData.colorPalette(
+                      d.properties.data[formData.attribute1],
+                    )
+                  : '#000'}"
+              ></span>
+              {attributesMap[formData.attribute1]}
+            </strong>
             <span>{d.properties.data[formData.attribute1]}</span>
           </p>
           <p>
-            <strong>{attributesMap[formData.attribute2]}</strong>
+            <strong>
+              <span
+                style="background: {legendData.colorPalette2
+                  ? legendData.colorPalette2(
+                      d.properties.data[formData.attribute2],
+                    )
+                  : '#000'}"
+              ></span>
+              {attributesMap[formData.attribute2]}</strong
+            >
             <span>{d.properties.data[formData.attribute2]}</span>
           </p>
+          <button on:click={remove(d)}>Remove</button>
         </div>
       {/each}
     {/if}
@@ -152,6 +194,7 @@
 
     .selected-content {
       width: 100%;
+      overflow-y: auto;
       .content {
         border: 1px solid gray;
         padding: 0.5em;
@@ -159,6 +202,17 @@
         strong,
         span {
           font-size: smaller;
+        }
+        strong {
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          span {
+            width: 1em;
+            height: 1em;
+            display: block;
+            margin-right: 0.5em;
+          }
         }
         p {
           font-size: medium;
