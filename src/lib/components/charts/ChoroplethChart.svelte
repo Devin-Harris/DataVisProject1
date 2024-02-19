@@ -40,6 +40,7 @@
   let path: d3.GeoPath<any, d3.GeoPermissibleObjects>;
   let formData: FormStoreState;
   let choroplethData: ChoroplethStoreState;
+  let projection: d3.GeoProjection;
 
   // Lifecycle methods
   onMount(async () => {
@@ -101,11 +102,10 @@
           `translate(${config.margin.left}, ${config.margin.top / 2})`,
         );
 
-      let projection = d3
+      projection = d3
         .geoAlbersUsa()
-        // .fitSize([width, height], data.objects.geometries)
         .translate([width / 2, height / 2])
-        .scale(width);
+        .scale(width + 2 * (config.margin.left + config.margin.right));
 
       path = d3.geoPath().projection(projection);
     }
