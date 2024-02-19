@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { attributesMap } from '../../models/attributes.model';
-  import { defaultChartConfig } from '../../models/chart-config.model';
   import type { ChoroplethStoreState } from '../../models/choropleth-store.model';
   import type { FormStoreState } from '../../models/form-store.model';
   import type { GeoData } from '../../models/geo-data.model';
@@ -27,11 +25,6 @@
   let formData: FormStoreState;
 
   let legendData: LegendStoreState;
-
-  onMount(() => {
-    resize();
-    window.addEventListener('resize', resize);
-  });
 
   choroplethStore.subscribe((s) => {
     choroplethData = s;
@@ -61,21 +54,6 @@
   legendStore.subscribe((s) => {
     legendData = s;
   });
-
-  function resize() {
-    if (mapsContainer) {
-      const bounds = mapsContainer.getBoundingClientRect();
-
-      const { left, top, right, bottom } = defaultChartConfig.margin;
-      const width = bounds.width - (left ?? 0) - (right ?? 0);
-      const height = bounds.height - (top ?? 0) - (bottom ?? 0);
-
-      map1Container.style.width = width + 'px';
-      map1Container.style.height = height + 'px';
-      map2Container.style.width = width + 'px';
-      map2Container.style.height = height + 'px';
-    }
-  }
 
   function toggleAttribute() {
     selectedAttribute =
