@@ -17,8 +17,8 @@ class Choropleth {
     this.attribute = _attribute;
     this.initVis();
     window.addEventListener('resize', () => {
-      this.setWidthAndHeight();
-      this.updateVis();
+      // Reinitialize because projection needs to be scaled to new width and height, but doing so auto appends map again causing layered maps when page resizes
+      this.initVis();
     });
   }
 

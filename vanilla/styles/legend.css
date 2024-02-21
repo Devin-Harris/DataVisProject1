@@ -19,11 +19,16 @@
       align-items: center;
       margin-right: 0.5em;
       min-width: 50px;
+      opacity: 0.5;
       span {
         height: 1em;
         width: 1em;
         margin-right: 0.25em;
         display: block;
+        cursor: pointer;
+      }
+      &.selected {
+        opacity: 1;
       }
     }
   }

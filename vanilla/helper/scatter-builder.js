@@ -107,10 +107,12 @@ class Scatterplot {
     this.updateVis();
   }
 
-  /**
-   * Prepare the data and scales before we render it.
-   */
-  updateVis() {
+  filterData(data) {
+    this.data = data;
+    this.updateVis(false);
+  }
+
+  updateScales() {
     // Initialize linear and ordinal scales (input domain and output range)
     const att1Values = this.data.map((d) => d[formData.attribute1]);
     const att2Values = this.data.map((d) => d[formData.attribute2]);
@@ -130,7 +132,7 @@ class Scatterplot {
       this.data
         .map((d) =>
           getGroupByValue(
-            // Color by state if showing data for each county to prevent duplicate coloring from so many counties
+            // Color by state if showing data for each county to limit duplicate coloring from so many counties
             formData.groupBy === 'County' ? 'State' : formData.groupBy,
             d
           )
@@ -138,6 +140,15 @@ class Scatterplot {
         .sort()
     );
     legendBuilder.setScatterColorScale(this.colorScale);
+  }
+
+  /**
+   * Prepare the data and scales before we render it.
+   */
+  updateVis(updateScales = true) {
+    if (updateScales) {
+      this.updateScales();
+    }
 
     // Set axis labels
     d3.select('.x-axis-title')

@@ -23,7 +23,14 @@ class LegendBuilder {
   }
 
   setScatterColorScale(colorScale) {
+    if (
+      JSON.stringify(colorScale.domain()) === JSON.stringify(this.storedDomain)
+    ) {
+      return;
+    }
+
     chartLegends[chartType.Scatter] = colorScale;
+    this.storedDomain = colorScale.domain();
 
     this.removeFieldSet();
 
@@ -34,8 +41,33 @@ class LegendBuilder {
       const p = document.createElement('p');
       const span = document.createElement('span');
       span.style.background = colorScale(d);
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (selectedLegendGroups.has(d)) {
+          selectedLegendGroups.delete(d);
+          p.classList.remove('selected');
+        } else {
+          selectedLegendGroups.add(d);
+          p.classList.add('selected');
+        }
+
+        const filteredGroupedData = groupedData.filter((g) => {
+          if (formData.groupBy === 'County') {
+            return selectedLegendGroups.has(g.state);
+          } else if (formData.groupBy === 'State') {
+            return selectedLegendGroups.has(g.state);
+          } else {
+            return selectedLegendGroups.has(g.urban_rural_status);
+          }
+        });
+
+        scatter?.filterData(filteredGroupedData);
+      });
       p.append(span);
       p.append(d);
+      p.classList.add('selected');
+      selectedLegendGroups.add(d);
       legendColors.append(p);
     });
 
@@ -43,7 +75,14 @@ class LegendBuilder {
   }
 
   setBarColorScale(colorScale) {
+    if (
+      JSON.stringify(colorScale.domain()) === JSON.stringify(this.storedDomain)
+    ) {
+      return;
+    }
+
     chartLegends[chartType.Bar] = colorScale;
+    this.storedDomain = colorScale.domain();
 
     this.removeFieldSet();
 
@@ -54,8 +93,23 @@ class LegendBuilder {
       const p = document.createElement('p');
       const span = document.createElement('span');
       span.style.background = colorScale(d);
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (selectedLegendGroups.has(d)) {
+          selectedLegendGroups.delete(d);
+          p.classList.remove('selected');
+        } else {
+          selectedLegendGroups.add(d);
+          p.classList.add('selected');
+        }
+
+        bar?.updateVis();
+      });
       p.append(span);
       p.append(d);
+      p.classList.add('selected');
+      selectedLegendGroups.add(d);
       legendColors.append(p);
     });
 
@@ -80,11 +134,10 @@ class LegendBuilder {
   }
 
   removeFieldSet() {
-    // this.fieldSetElm.children.removeChild(1);
-    // console.log(this.fieldSetElm.children.length);
     Array.from(this.fieldSetElm.children).forEach((element, i) => {
       if (i !== 0) element.remove();
     });
+    selectedLegendGroups.clear();
   }
 
   buildMapLegend(attribute, scale) {

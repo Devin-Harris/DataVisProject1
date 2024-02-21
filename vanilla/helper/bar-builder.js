@@ -9,6 +9,10 @@ class BarChart {
     this.initVis();
     window.addEventListener('resize', () => {
       this.setWidthAndHeight();
+
+      this.xScale.range([0, this.width]);
+      this.yScale.range([this.height, 0]);
+
       this.updateVis();
     });
   }
@@ -45,7 +49,7 @@ class BarChart {
     // Initialize scales
     this.colorScale = d3.scaleOrdinal(d3.schemeTableau10);
     this.xScale = d3.scaleBand().range([0, this.width]).padding(0.1);
-    this.yScale = d3.scaleLinear().range([0, this.height]).nice();
+    this.yScale = d3.scaleLinear().range([this.height, 0]).nice();
 
     // Initialize axes
     this.xAxis = d3.axisBottom(this.xScale);
@@ -103,6 +107,8 @@ class BarChart {
         }`
       );
 
+    this.dataGroup = this.chart.append('g').attr('class', 'data-group');
+
     this.updateVis();
     this.svg.transition().call(this.zoom.scaleTo, 100);
     requestAnimationFrame(() => {
@@ -113,6 +119,7 @@ class BarChart {
   updateData(data) {
     this.data = this.sortBarData(data);
     this.updateVis();
+    this.svg.call(this.zoom.transform, d3.zoomIdentity);
   }
 
   /**
@@ -160,8 +167,7 @@ class BarChart {
         }`
       );
 
-    const dataGroup = this.chart.append('g').attr('class', 'data-group');
-    const rectangleGroups = dataGroup
+    const rectangleGroups = this.dataGroup
       .selectAll('.data-point')
       .data(this.data)
       .join('g')
@@ -174,33 +180,59 @@ class BarChart {
 
     rectangleGroups
       .selectAll('.bar')
-      .data((d) => [
-        { data: d, value: d[formData.attribute1], class: 'attribute1' },
-        { data: d, value: d[formData.attribute2], class: 'attribute2' },
-      ])
+      .data((d) => {
+        const arr = [];
+        if (selectedLegendGroups.has(attributesMap[formData.attribute1])) {
+          arr.push({
+            data: d,
+            value: d[formData.attribute1],
+            class: 'attribute1',
+          });
+        }
+        if (selectedLegendGroups.has(attributesMap[formData.attribute2])) {
+          arr.push({
+            data: d,
+            value: d[formData.attribute2],
+            class: 'attribute2',
+          });
+        }
+        return arr;
+      })
       .join('rect')
-      .attr('class', (d) => `bar ${d.class}`)
-      .transition()
-      .attr('fill', (d) => this.colorScale(attributesMap[formData[d.class]]))
-      .transition()
       .attr(
-        'x',
+        'class',
         (d) =>
-          this.xScale(getGroupByValue(formData.groupBy, d.data)) +
-          (d.class === 'attribute2' ? this.xScale.bandwidth() / 2 + 1 : 0)
+          `bar ${d.class} ${
+            selectedLegendGroups.has(attributesMap[formData[d.class]])
+              ? 'shown'
+              : 'hidden'
+          }`
       )
+      .transition()
+      .attr('width', (d) => {
+        let bandwidth = this.xScale.bandwidth();
+        if (selectedLegendGroups.size > 1) {
+          bandwidth /= selectedLegendGroups.size;
+          bandwidth -= selectedLegendGroups.size;
+        }
+        return Math.max(bandwidth, 0);
+      })
+      .attr('height', (d) => {
+        return this.height - Math.max(this.yScale(d.value) ?? 0, 0);
+      })
+      .attr('fill', (d) => this.colorScale(attributesMap[formData[d.class]]))
+      .attr('x', (d, i) => {
+        let x = this.xScale(getGroupByValue(formData.groupBy, d.data));
+        let bandwidth = this.xScale.bandwidth();
+        if (selectedLegendGroups.size > 1) {
+          bandwidth /= selectedLegendGroups.size;
+          x += i * bandwidth;
+        }
+        return x;
+      })
       .transition()
       .attr('y', (d) =>
         formData[d.class] ? this.yScale(d.value) : this.height + 100
-      )
-      .transition()
-      .duration(1000)
-      .attr('width', Math.max(this.xScale.bandwidth() / 2 - 1, 0))
-      .transition()
-      .duration(1000)
-      .attr(
-        'height',
-        (d) => this.height - Math.max(this.yScale(d.value) ?? 0, 0)
       );
 
     rectangleGroups

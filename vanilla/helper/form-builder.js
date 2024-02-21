@@ -86,9 +86,13 @@ class FormBuilder {
 
     if (this.storedChartType !== chartTypeValue) {
       scatter?.destroy();
+      scatter = null;
       bar?.destroy();
+      bar = null;
       choro1?.destroy();
+      choro1 = null;
       choro2?.destroy();
+      choro2 = null;
 
       if (chartTypeValue === 'Scatter') {
         scatter = new Scatterplot(

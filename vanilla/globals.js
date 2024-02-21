@@ -147,3 +147,5 @@ const chartLegends = {
     attribute2: null,
   },
 };
+
+const selectedLegendGroups = new Set();
