@@ -107,19 +107,34 @@ class Scatterplot {
     this.updateVis();
   }
 
-  filterData(data) {
-    this.data = data;
-    this.updateVis(false);
-  }
-
   updateScales() {
     // Initialize linear and ordinal scales (input domain and output range)
-    const att1Values = this.data.map((d) => d[formData.attribute1]);
-    const att2Values = this.data.map((d) => d[formData.attribute2]);
+    const att1Values = this.data
+      .filter((d) => {
+        if (formData.groupBy === 'County') {
+          return selectedLegendGroups.has(d.state);
+        } else if (formData.groupBy === 'State') {
+          return selectedLegendGroups.has(d.state);
+        } else {
+          return selectedLegendGroups.has(d.urban_rural_status);
+        }
+      })
+      .map((d) => d[formData.attribute1]);
+    const att2Values = this.data
+      .filter((d) => {
+        if (formData.groupBy === 'County') {
+          return selectedLegendGroups.has(d.state);
+        } else if (formData.groupBy === 'State') {
+          return selectedLegendGroups.has(d.state);
+        } else {
+          return selectedLegendGroups.has(d.urban_rural_status);
+        }
+      })
+      .map((d) => d[formData.attribute2]);
 
     // Set the scale input domains
     this.xScale
-      .domain([Math.min(...att1Values), Math.max(...att1Values)])
+      .domain([Math.min(...att1Values, 0), Math.max(...att1Values)])
       .range([0, this.width])
       .nice();
 
@@ -145,10 +160,8 @@ class Scatterplot {
   /**
    * Prepare the data and scales before we render it.
    */
-  updateVis(updateScales = true) {
-    if (updateScales) {
-      this.updateScales();
-    }
+  updateVis() {
+    this.updateScales();
 
     // Set axis labels
     d3.select('.x-axis-title')
@@ -163,7 +176,26 @@ class Scatterplot {
       .selectAll('circle')
       .data(this.data)
       .join('circle')
-      .attr('class', 'data-point');
+      .attr('class', (d) => {
+        let classStr = 'data-point';
+
+        let addShownClass = false;
+        if (formData.groupBy === 'County') {
+          addShownClass = selectedLegendGroups.has(d.state);
+        } else if (formData.groupBy === 'State') {
+          addShownClass = selectedLegendGroups.has(d.state);
+        } else {
+          addShownClass = selectedLegendGroups.has(d.urban_rural_status);
+        }
+
+        if (addShownClass) {
+          classStr += ' shown';
+        } else {
+          classStr += ' hidden';
+        }
+
+        return classStr;
+      });
 
     this.circles
       .transition()

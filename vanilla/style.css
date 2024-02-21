@@ -89,12 +89,27 @@ body {
     #bar {
       opacity: 1;
       pointer-events: all;
+      rect {
+        transition: opacity 0.3s;
+        &.hidden {
+          opacity: 0;
+          pointer-events: none;
+        }
+      }
     }
   }
   &.Scatter {
     #scatter {
       opacity: 1;
       pointer-events: all;
+
+      .data-point {
+        transition: opacity 0.3s;
+        &.hidden {
+          opacity: 0;
+          pointer-events: none;
+        }
+      }
     }
   }
   &.Choropleth {

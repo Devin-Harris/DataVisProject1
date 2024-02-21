@@ -116,10 +116,12 @@ class BarChart {
     });
   }
 
-  updateData(data) {
+  updateData(data, resetZoom = true) {
     this.data = this.sortBarData(data);
     this.updateVis();
-    this.svg.call(this.zoom.transform, d3.zoomIdentity);
+    if (resetZoom) {
+      this.svg.call(this.zoom.transform, d3.zoomIdentity);
+    }
   }
 
   /**
@@ -127,9 +129,23 @@ class BarChart {
    */
   updateVis() {
     // Initialize linear and ordinal scales (input domain and output range)
-    const att1Values = this.data.map((d) => d[formData.attribute1]);
-    const att2Values = this.data.map((d) => d[formData.attribute2]);
-    const minAtt = Math.min(...att1Values, ...att2Values);
+    this.colorScale.domain([
+      attributesMap[formData.attribute1],
+      attributesMap[formData.attribute2],
+    ]);
+    legendBuilder.setBarColorScale(this.colorScale);
+
+    const att1Values = selectedLegendGroups.has(
+      attributesMap[formData.attribute1]
+    )
+      ? this.data.map((d) => d[formData.attribute1] ?? 0)
+      : [];
+    const att2Values = selectedLegendGroups.has(
+      attributesMap[formData.attribute2]
+    )
+      ? this.data.map((d) => d[formData.attribute2] ?? 0)
+      : [];
+    const minAtt = Math.min(...att1Values, ...att2Values, 0);
     const maxAtt = Math.max(...att1Values, ...att2Values);
 
     // Set the scale input domains
@@ -138,12 +154,6 @@ class BarChart {
       .range([0, this.width]);
 
     this.yScale.domain([maxAtt, minAtt]).range([0, this.height]).nice();
-
-    this.colorScale.domain([
-      attributesMap[formData.attribute1],
-      attributesMap[formData.attribute2],
-    ]);
-    legendBuilder.setBarColorScale(this.colorScale);
 
     this.zoom
       .translateExtent([

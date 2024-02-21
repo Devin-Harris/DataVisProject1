@@ -52,17 +52,7 @@ class LegendBuilder {
           p.classList.add('selected');
         }
 
-        const filteredGroupedData = groupedData.filter((g) => {
-          if (formData.groupBy === 'County') {
-            return selectedLegendGroups.has(g.state);
-          } else if (formData.groupBy === 'State') {
-            return selectedLegendGroups.has(g.state);
-          } else {
-            return selectedLegendGroups.has(g.urban_rural_status);
-          }
-        });
-
-        scatter?.filterData(filteredGroupedData);
+        scatter?.updateVis();
       });
       p.append(span);
       p.append(d);

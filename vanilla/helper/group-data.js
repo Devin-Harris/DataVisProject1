@@ -3,7 +3,7 @@ function getGroupByValue(groupBy, d) {
     ? d.state ?? ''
     : groupBy === 'UrbanRuralStatus'
     ? d.urban_rural_status
-    : d.county_name;
+    : d.county_name + ` (${d.state})`;
 }
 
 function buildAggregateValue(formData, allValues, attribute) {
