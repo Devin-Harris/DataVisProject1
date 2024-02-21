@@ -167,7 +167,7 @@ class BarChart {
         }`
       );
 
-    const rectangleGroups = this.dataGroup
+    this.rectangleGroups = this.dataGroup
       .selectAll('.data-point')
       .data(this.data)
       .join('g')
@@ -178,7 +178,7 @@ class BarChart {
       .attr('width', this.xScale.bandwidth())
       .attr('height', this.height);
 
-    rectangleGroups
+    this.rectangleGroups
       .selectAll('.bar')
       .data((d) => {
         const arr = [];
@@ -235,13 +235,13 @@ class BarChart {
         formData[d.class] ? this.yScale(d.value) : this.height + 100
       );
 
-    rectangleGroups
+    this.rectangleGroups
       .selectAll('.bar.attribute1')
       .on('mouseover', (event, d) =>
         this.mouseOverTooltipCB(event, d.data, 'attribute1')
       )
       .on('mouseleave', () => this.mouseLeaveTooltipCB());
-    rectangleGroups
+    this.rectangleGroups
       .selectAll('.bar.attribute2')
       .on('mouseover', (event, d) =>
         this.mouseOverTooltipCB(event, d.data, 'attribute2')
@@ -307,33 +307,33 @@ class BarChart {
 
   zoomed(event) {
     this.xScale.range([0, this.width].map((d) => event.transform.applyX(d)));
-    // this.xAxis = d3.axisBottom(this.xScale);
 
-    // this.svg
-    //   .selectAll('.data-point')
-    //   .attr('x', (d) => this.xScale(getGroupByValue(formData.groupBy, d)))
-    //   .attr('width', this.xScale.bandwidth())
-    //   .attr('transform', (d) => `translate(${0},0)`)
-    //   .selectAll('.bar')
-    //   .attr(
-    //     'x',
-    //     (d) =>
-    //       this.xScale(getGroupByValue(formData.groupBy, d.data)) +
-    //       (d.class === 'attribute2' ? this.xScale.bandwidth() / 2 + 1 : 0)
-    //   )
-    //   .attr('width', Math.max(this.xScale.bandwidth() / 2 - 1, 0));
+    this.rectangleGroups
+      .attr('x', (d) => this.xScale(getGroupByValue(formData.groupBy, d)))
+      .attr('y', 0)
+      .attr('width', this.xScale.bandwidth())
+      .attr('height', this.height);
 
-    // this.xAxisG.call(this.xAxis);
-
-    this.svg
+    this.rectangleGroups
       .selectAll('.bar')
-      .attr(
-        'x',
-        (d) =>
-          this.xScale(getGroupByValue(formData.groupBy, d.data)) +
-          (d.class === 'attribute2' ? this.xScale.bandwidth() / 2 + 1 : 0)
-      )
-      .attr('width', Math.max(this.xScale.bandwidth() / 2 - 1, 0));
+      .attr('x', (d, i) => {
+        let x = this.xScale(getGroupByValue(formData.groupBy, d.data));
+        let bandwidth = this.xScale.bandwidth();
+        if (selectedLegendGroups.size > 1) {
+          bandwidth /= selectedLegendGroups.size;
+          x += i * bandwidth;
+        }
+        return x;
+      })
+      .attr('width', (d) => {
+        let bandwidth = this.xScale.bandwidth();
+        if (selectedLegendGroups.size > 1) {
+          bandwidth /= selectedLegendGroups.size;
+          bandwidth -= selectedLegendGroups.size;
+        }
+        return Math.max(bandwidth, 0);
+      });
+
     this.svg.selectAll('.x-axis').call(this.xAxis);
   }
 
