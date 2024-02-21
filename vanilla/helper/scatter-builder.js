@@ -69,6 +69,32 @@ class Scatterplot {
         'transform',
         `translate(${this.config.margin.left},${this.config.margin.top / 2})`
       );
+    this.brush = d3.brush();
+    this.chart.call(
+      d3.brush().on('start brush end', (e) => {
+        let extent = e.selection;
+        selectedPoints.clear();
+
+        storedSelection[chartType.Scatter] = e.selection;
+
+        if (extent && extent[0] && extent[1]) {
+          this.circles.each((d, i, j) => {
+            let circle = j[i];
+            // Is the circle in the selection?
+            let isBrushed =
+              extent[0][0] <= circle.getAttribute('cx') &&
+              extent[1][0] >= circle.getAttribute('cx') &&
+              extent[0][1] <= circle.getAttribute('cy') &&
+              extent[1][1] >= circle.getAttribute('cy');
+
+            if (isBrushed) {
+              selectedPoints.add(getGroupByValue(formData, d));
+            }
+          });
+        }
+        this.updateVis();
+      })
+    );
 
     // Append empty x-axis group and move it to the bottom of the chart
     this.xAxisG = this.chart
@@ -100,6 +126,12 @@ class Scatterplot {
       .text(attributesMap[formData.attribute2]);
 
     this.updateVis();
+
+    if (storedSelection[chartType.Scatter]) {
+      this.chart
+        .transition()
+        .call(this.brush.move, storedSelection[chartType.Scatter]);
+    }
   }
 
   updateData(data) {
@@ -109,6 +141,19 @@ class Scatterplot {
 
   updateScales() {
     // Initialize linear and ordinal scales (input domain and output range)
+    this.colorScale.domain(
+      this.data
+        .map((d) =>
+          getGroupByValue(
+            // Color by state if showing data for each county to limit duplicate coloring from so many counties
+            formData.groupBy === 'County' ? 'State' : formData.groupBy,
+            d
+          )
+        )
+        .sort()
+    );
+    legendBuilder.setScatterColorScale(this.colorScale);
+
     const att1Values = this.data
       .filter((d) => {
         if (formData.groupBy === 'County') {
@@ -142,19 +187,6 @@ class Scatterplot {
       .domain([Math.max(...att2Values), Math.min(...att2Values)])
       .range([0, this.height])
       .nice();
-
-    this.colorScale.domain(
-      this.data
-        .map((d) =>
-          getGroupByValue(
-            // Color by state if showing data for each county to limit duplicate coloring from so many counties
-            formData.groupBy === 'County' ? 'State' : formData.groupBy,
-            d
-          )
-        )
-        .sort()
-    );
-    legendBuilder.setScatterColorScale(this.colorScale);
   }
 
   /**
@@ -177,24 +209,23 @@ class Scatterplot {
       .data(this.data)
       .join('circle')
       .attr('class', (d) => {
-        let classStr = 'data-point';
+        const classes = ['data-point'];
 
-        let addShownClass = false;
         if (formData.groupBy === 'County') {
-          addShownClass = selectedLegendGroups.has(d.state);
+          classes.push(selectedLegendGroups.has(d.state) ? 'shown' : 'hidden');
         } else if (formData.groupBy === 'State') {
-          addShownClass = selectedLegendGroups.has(d.state);
+          classes.push(selectedLegendGroups.has(d.state) ? 'shown' : 'hidden');
         } else {
-          addShownClass = selectedLegendGroups.has(d.urban_rural_status);
+          classes.push(
+            selectedLegendGroups.has(d.urban_rural_status) ? 'shown' : 'hidden'
+          );
         }
 
-        if (addShownClass) {
-          classStr += ' shown';
-        } else {
-          classStr += ' hidden';
+        if (selectedPoints?.has(getGroupByValue(formData, d))) {
+          classes.push('selected');
         }
 
-        return classStr;
+        return classes.join(' ');
       });
 
     this.circles

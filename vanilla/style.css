@@ -96,6 +96,14 @@ body {
           pointer-events: none;
         }
       }
+      .data-point {
+        &.selected {
+          rect {
+            stroke: orangered;
+            stroke-width: 3px;
+          }
+        }
+      }
     }
   }
   &.Scatter {
@@ -108,6 +116,10 @@ body {
         &.hidden {
           opacity: 0;
           pointer-events: none;
+        }
+        &.selected {
+          stroke: orangered;
+          stroke-width: 3px;
         }
       }
     }

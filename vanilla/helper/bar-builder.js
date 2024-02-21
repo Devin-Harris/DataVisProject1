@@ -73,6 +73,33 @@ class BarChart {
         'transform',
         `translate(${this.config.margin.left},${this.config.margin.top / 2})`
       );
+    this.brush = d3.brushX();
+    this.chart.call(
+      d3.brushX().on('start brush end', (e) => {
+        let extent = e.selection;
+        selectedPoints.clear();
+        storedSelection[chartType.Bar] = e.selection;
+
+        if (extent) {
+          this.rectangleGroups.each((d, i, j) => {
+            let rectGroup = j[i];
+            // Is the circle in the selection?
+
+            const width = +rectGroup.getAttribute('width');
+            const x = +rectGroup.getAttribute('x');
+
+            const cx = x + width / 2;
+
+            let isBrushed = extent[0] <= cx && extent[1] >= cx;
+
+            if (isBrushed) {
+              selectedPoints.add(getGroupByValue(formData, d));
+            }
+          });
+        }
+        this.updateVis();
+      })
+    );
 
     // Append empty x-axis group and move it to the bottom of the chart
     this.xAxisG = this.chart
@@ -111,6 +138,11 @@ class BarChart {
 
     this.updateVis();
     this.svg.transition().call(this.zoom.scaleTo, 100);
+    if (storedSelection[chartType.Bar]) {
+      this.chart
+        .transition()
+        .call(this.brush.move, storedSelection[chartType.Bar]);
+    }
     requestAnimationFrame(() => {
       this.updateVis();
     });
@@ -181,7 +213,13 @@ class BarChart {
       .selectAll('.data-point')
       .data(this.data)
       .join('g')
-      .attr('class', 'data-point')
+      .attr('class', (d) => {
+        const classes = ['data-point'];
+        if (selectedPoints?.has(getGroupByValue(formData, d))) {
+          classes.push('selected');
+        }
+        return classes.join(' ');
+      })
       .attr('transform', (d) => `translate(${0},0)`)
       .attr('x', (d) => this.xScale(getGroupByValue(formData.groupBy, d)))
       .attr('y', 0)
@@ -209,15 +247,15 @@ class BarChart {
         return arr;
       })
       .join('rect')
-      .attr(
-        'class',
-        (d) =>
-          `bar ${d.class} ${
-            selectedLegendGroups.has(attributesMap[formData[d.class]])
-              ? 'shown'
-              : 'hidden'
-          }`
-      )
+      .attr('class', (d) => {
+        const classes = ['bar', d.class];
+        classes.push(
+          selectedLegendGroups.has(attributesMap[formData[d.class]])
+            ? 'shown'
+            : 'hidden'
+        );
+        return classes.join(' ');
+      })
       .transition()
       .attr('width', (d) => {
         let bandwidth = this.xScale.bandwidth();

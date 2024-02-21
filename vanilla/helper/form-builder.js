@@ -8,6 +8,7 @@ class FormBuilder {
   barWidthSlider = null;
   sortingSelect = null;
   storedChartType = null;
+  storedGroupType = null;
 
   attributesToExclude = [
     'cnty_fips',
@@ -83,6 +84,14 @@ class FormBuilder {
     formData.barSortDirection = sortDirectionValue;
 
     groupedData = groupData(formData, data);
+
+    if (this.storedGroupType !== groupByValue) {
+      storedSelection[chartType.Scatter] = null;
+      storedSelection[chartType.Bar] = null;
+      storedSelection[chartType.Choropleth] = null;
+
+      this.storedGroupType = groupByValue;
+    }
 
     if (this.storedChartType !== chartTypeValue) {
       scatter?.destroy();

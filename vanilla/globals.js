@@ -149,3 +149,13 @@ const chartLegends = {
 };
 
 const selectedLegendGroups = new Set();
+
+const selectedPoints = new Set();
+const storedSelection = {
+  [chartType.Scatter]: null,
+  [chartType.Bar]: null,
+  [chartType.Choropleth]: {
+    attribute1: null,
+    attribute2: null,
+  },
+};

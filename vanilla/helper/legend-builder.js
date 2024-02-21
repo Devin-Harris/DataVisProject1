@@ -33,6 +33,7 @@ class LegendBuilder {
     this.storedDomain = colorScale.domain();
 
     this.removeFieldSet();
+    selectedLegendGroups.clear();
 
     const legendColors = document.createElement('div');
     legendColors.classList.add('legend-colors');
