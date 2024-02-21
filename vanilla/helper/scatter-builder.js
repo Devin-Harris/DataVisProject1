@@ -134,7 +134,7 @@ class Scatterplot {
 
     // Set the scale input domains
     this.xScale
-      .domain([Math.min(...att1Values, 0), Math.max(...att1Values)])
+      .domain([Math.min(...att1Values), Math.max(...att1Values)])
       .range([0, this.width])
       .nice();
 

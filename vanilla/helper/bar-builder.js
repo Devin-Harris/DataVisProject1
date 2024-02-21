@@ -145,7 +145,7 @@ class BarChart {
     )
       ? this.data.map((d) => d[formData.attribute2] ?? 0)
       : [];
-    const minAtt = Math.min(...att1Values, ...att2Values, 0);
+    const minAtt = Math.min(...att1Values, ...att2Values);
     const maxAtt = Math.max(...att1Values, ...att2Values);
 
     // Set the scale input domains
@@ -227,6 +227,7 @@ class BarChart {
         }
         return Math.max(bandwidth, 0);
       })
+      .transition()
       .attr('height', (d) => {
         return this.height - Math.max(this.yScale(d.value) ?? 0, 0);
       })
@@ -240,7 +241,6 @@ class BarChart {
         }
         return x;
       })
-      .transition()
       .attr('y', (d) =>
         formData[d.class] ? this.yScale(d.value) : this.height + 100
       );
