@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Visualizations - Project 1</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./styles/form.css" />
+    <link rel="stylesheet" href="./styles/legend.css" />
+    <script defer src="./helper/d3.v6.min.js"></script>
+    <script defer src="./helper/group-data.js"></script>
+    <script defer src="./globals.js"></script>
+    <script defer src="./helper/form-builder.js"></script>
+    <script defer src="./helper/legend-builder.js"></script>
+    <script defer src="./helper/scatter-builder.js"></script>
+    <script defer src="./helper/bar-builder.js"></script>
+    <script defer src="./main.js"></script>
+  </head>
+  <body>
+    <div class="title">
+      <div class="lhs">
+        <h1>Project 1 - Health in the USA</h1>
+        <h4>By Devin Harris</h4>
+      </div>
+      <div class="rhs">
+        <small
+          >Data from
+          <a href="https://www.cdc.gov/dhdsp/maps/atlas/index.htm"
+            >https://www.cdc.gov/dhdsp/maps/atlas/index.htm</a
+          ></small
+        >
+      </div>
+    </div>
+
+    <div id="app">
+      <div class="flex">
+        <div class="lhs">
+          <form id="form"></form>
+          <div id="legend"></div>
+        </div>
+
+        <div class="rhs">
+          <div id="chart">
+            <svg width="100%" height="100%" id="scatter"></svg>
+            <svg width="100%" height="100%" id="bar"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+.legend {
+  padding: 1em;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  .legend-colors {
+    width: 100%;
+    overflow: auto;
+    display: flex;
+    flex-wrap: wrap;
+    p {
+      margin-bottom: 0.5em;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-right: 0.5em;
+      min-width: 50px;
+      span {
+        height: 1em;
+        width: 1em;
+        margin-right: 0.25em;
+        display: block;
+      }
+    }
+  }
+
+  .choro-legend-container {
+    width: 100%;
+    .choro-legend {
+      margin-bottom: 1.5em;
+      width: 100%;
+      .gradient {
+        height: 1em;
+        width: 100%;
+        position: relative;
+        margin-bottom: 1em;
+        .lower {
+          position: absolute;
+          top: 1em;
+          left: 0;
+        }
+        .higher {
+          position: absolute;
+          top: 1em;
+          right: 0;
+        }
+      }
+    }
+  }
+}
