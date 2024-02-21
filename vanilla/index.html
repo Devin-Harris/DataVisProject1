@@ -15,12 +15,14 @@
     <link rel="stylesheet" href="./styles/form.css" />
     <link rel="stylesheet" href="./styles/legend.css" />
     <script defer src="./helper/d3.v6.min.js"></script>
+    <script defer src="./helper/topojson.v3.js"></script>
     <script defer src="./helper/group-data.js"></script>
     <script defer src="./globals.js"></script>
     <script defer src="./helper/form-builder.js"></script>
     <script defer src="./helper/legend-builder.js"></script>
     <script defer src="./helper/scatter-builder.js"></script>
     <script defer src="./helper/bar-builder.js"></script>
+    <script defer src="./helper/choropleth-builder.js"></script>
     <script defer src="./main.js"></script>
   </head>
   <body>
@@ -50,6 +52,34 @@
           <div id="chart">
             <svg width="100%" height="100%" id="scatter"></svg>
             <svg width="100%" height="100%" id="bar"></svg>
+            <svg width="100%" height="100%" id="choro1"></svg>
+            <svg width="100%" height="100%" id="choro2"></svg>
+
+            <div id="tooltip"></div>
+
+            <svg
+              height="1"
+              width="1"
+              xmlns="http://www.w3.org/2000/svg"
+              version="1.1"
+            >
+              <defs>
+                <pattern
+                  id="lightstripe"
+                  patternUnits="userSpaceOnUse"
+                  width="5"
+                  height="5"
+                >
+                  <image
+                    xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1JyBoZWlnaHQ9JzUnPgogIDxyZWN0IHdpZHRoPSc1JyBoZWlnaHQ9JzUnIGZpbGw9J3doaXRlJy8+CiAgPHBhdGggZD0nTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVonIHN0cm9rZT0nIzg4OCcgc3Ryb2tlLXdpZHRoPScxJy8+Cjwvc3ZnPg=="
+                    x="0"
+                    y="0"
+                    width="5"
+                    height="5"
+                  ></image>
+                </pattern>
+              </defs>
+            </svg>
           </div>
         </div>
       </div>

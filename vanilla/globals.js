@@ -12,6 +12,10 @@ let scatter = null;
 
 let bar = null;
 
+let choro1 = null;
+
+let choro2 = null;
+
 const sortDirection = {
   None: 'None',
   Attribute1Ascending: 'Attribute 1 Ascending',
@@ -72,6 +76,7 @@ const formData = {
   chartType: 'Scatter',
   barWidth: 150,
   barSortDirection: 'None',
+  mapSelectedAttribute: 'attribute1',
 };
 
 const stateAbbreviationsMap = {

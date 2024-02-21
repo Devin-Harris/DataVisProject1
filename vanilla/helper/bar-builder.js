@@ -56,7 +56,7 @@ class BarChart {
 
     this.zoom = d3
       .zoom()
-      .scaleExtent([1, Infinity])
+      .scaleExtent([1, 1000])
       .on('zoom', (event) => this.zoomed(event));
 
     this.svg.call(this.zoom);
@@ -104,15 +104,15 @@ class BarChart {
       );
 
     this.updateVis();
+    this.svg.transition().call(this.zoom.scaleTo, 100);
+    requestAnimationFrame(() => {
+      this.updateVis();
+    });
   }
 
   updateData(data) {
     this.data = this.sortBarData(data);
     this.updateVis();
-    this.svg
-      .transition()
-      .duration(500)
-      .call(this.zoom.transform, d3.zoomIdentity);
   }
 
   /**
@@ -140,18 +140,12 @@ class BarChart {
 
     this.zoom
       .translateExtent([
-        [this.config.margin.left, this.config.margin.top],
-        [
-          this.width - this.config.margin.right,
-          this.height - this.config.margin.top,
-        ],
+        [0, 0],
+        [this.width, this.height],
       ])
       .extent([
-        [this.config.margin.left, this.config.margin.top],
-        [
-          this.width - this.config.margin.right,
-          this.height - this.config.margin.top,
-        ],
+        [0, 0],
+        [this.width, this.height],
       ]);
 
     // Set axis labels
@@ -176,7 +170,9 @@ class BarChart {
       .attr('x', (d) => this.xScale(getGroupByValue(formData.groupBy, d)))
       .attr('y', 0)
       .attr('width', this.xScale.bandwidth())
-      .attr('height', this.height)
+      .attr('height', this.height);
+
+    rectangleGroups
       .selectAll('.bar')
       .data((d) => [
         { data: d, value: d[formData.attribute1], class: 'attribute1' },
@@ -207,19 +203,97 @@ class BarChart {
         (d) => this.height - Math.max(this.yScale(d.value) ?? 0, 0)
       );
 
+    rectangleGroups
+      .selectAll('.bar.attribute1')
+      .on('mouseover', (event, d) =>
+        this.mouseOverTooltipCB(event, d.data, 'attribute1')
+      )
+      .on('mouseleave', () => this.mouseLeaveTooltipCB());
+    rectangleGroups
+      .selectAll('.bar.attribute2')
+      .on('mouseover', (event, d) =>
+        this.mouseOverTooltipCB(event, d.data, 'attribute2')
+      )
+      .on('mouseleave', () => this.mouseLeaveTooltipCB());
+
     // Update the axes/gridlines
     this.xAxisG.call(this.xAxis);
     this.yAxisG.call(this.yAxis);
+
+    const tooltip = d3.select('#tooltip');
+    tooltip.on('mouseover', () => {
+      tooltip.style('opacity', 1).style('pointer-events', 'all');
+    });
+    tooltip.on('mouseleave', () => {
+      tooltip.style('opacity', 0).style('pointer-events', 'none');
+    });
+  }
+
+  mouseOverTooltipCB(event, d, attribute) {
+    const tooltip = d3.select('#tooltip');
+    const tooltipElm = tooltip.node();
+    const tooltipBounds = tooltipElm.getBoundingClientRect();
+    const chartBounds = this.config.parentElement.getBoundingClientRect();
+    tooltip
+      .style('pointer-events', 'all')
+      .style('opacity', '1')
+      .style(
+        'left',
+        Math.min(
+          event.pageX,
+          chartBounds.x + chartBounds.width - tooltipBounds.width
+        ) + 'px'
+      )
+      .style(
+        'top',
+        Math.min(
+          event.pageY,
+          chartBounds.y + chartBounds.height - tooltipBounds.height
+        ) + 'px'
+      ).html(`
+          <small>${d.display_name}</small>
+          ${
+            attribute === 'attribute1'
+              ? `<p>
+                <strong>${attributesMap[formData.attribute1]}</strong>
+                <i>(${formData.groupByAggregate})</i> 
+                </p>
+              <p>${d[formData.attribute1]}</p>`
+              : `
+             <p>
+              <strong>${attributesMap[formData.attribute2]}</strong>
+              <i>(${formData.groupByAggregate})</i> 
+              </p>
+            <p>${d[formData.attribute2]}</p>`
+          }
+        `);
+  }
+
+  mouseLeaveTooltipCB(event) {
+    d3.select('#tooltip').style('opacity', '0').style('pointer-events', 'none');
   }
 
   zoomed(event) {
     this.xScale.range([0, this.width].map((d) => event.transform.applyX(d)));
+    // this.xAxis = d3.axisBottom(this.xScale);
+
+    // this.svg
+    //   .selectAll('.data-point')
+    //   .attr('x', (d) => this.xScale(getGroupByValue(formData.groupBy, d)))
+    //   .attr('width', this.xScale.bandwidth())
+    //   .attr('transform', (d) => `translate(${0},0)`)
+    //   .selectAll('.bar')
+    //   .attr(
+    //     'x',
+    //     (d) =>
+    //       this.xScale(getGroupByValue(formData.groupBy, d.data)) +
+    //       (d.class === 'attribute2' ? this.xScale.bandwidth() / 2 + 1 : 0)
+    //   )
+    //   .attr('width', Math.max(this.xScale.bandwidth() / 2 - 1, 0));
+
+    // this.xAxisG.call(this.xAxis);
 
     this.svg
-      .selectAll('.data-point')
-      .attr('x', (d) => this.xScale(getGroupByValue(formData.groupBy, d)))
-      .attr('width', this.xScale.bandwidth())
-      .attr('transform', (d) => `translate(${0},0)`)
       .selectAll('.bar')
       .attr(
         'x',
@@ -228,8 +302,7 @@ class BarChart {
           (d.class === 'attribute2' ? this.xScale.bandwidth() / 2 + 1 : 0)
       )
       .attr('width', Math.max(this.xScale.bandwidth() / 2 - 1, 0));
-
-    this.xAxisG.call(this.xAxis);
+    this.svg.selectAll('.x-axis').call(this.xAxis);
   }
 
   sortBarData(data) {

@@ -152,7 +152,9 @@ class Scatterplot {
       .selectAll('circle')
       .data(this.data)
       .join('circle')
-      .attr('class', 'data-point')
+      .attr('class', 'data-point');
+
+    this.circles
       .transition()
       .attr('fill', (d) =>
         this.colorScale(
@@ -188,30 +190,60 @@ class Scatterplot {
       .attr('stroke', 'gray')
       .attr('stroke-width', 1);
 
-    // Tooltip event listeners
-    // this.circles
-    //   .on('mouseover', (event, d) => {
-    //     d3
-    //       .select('#tooltip')
-    //       .style('display', 'block')
-    //       .style('opacity', 1)
-    //       .style('left', event.pageX + this.config.tooltipPadding + 'px')
-    //       .style('top', event.pageY + this.config.tooltipPadding + 'px').html(`
-    //           <div class="tooltip-title">${d.trail}</div>
-    //           <div><i>${d.region}</i></div>
-    //           <ul>
-    //             <li>${d.distance} km, ~${d.time} hours</li>
-    //             <li>${d.difficulty}</li>
-    //             <li>${d.season}</li>
-    //           </ul>
-    //         `);
-    //   })
-    //   .on('mouseleave', () => {
-    //     d3.select('#tooltip').style('display', 'block').style('opacity', 0);
-    //   });
+    this.circles
+      .on('mouseover', (event, d) => this.mouseOverTooltipCB(event, d))
+      .on('mouseleave', () => this.mouseLeaveTooltipCB());
+
+    const tooltip = d3.select('#tooltip');
+    tooltip.on('mouseover', () => {
+      tooltip.style('opacity', 1).style('pointer-events', 'all');
+    });
+    tooltip.on('mouseleave', () => {
+      tooltip.style('opacity', 0).style('pointer-events', 'none');
+    });
 
     // Update the axes/gridlines
     this.xAxisG.call(this.xAxis);
     this.yAxisG.call(this.yAxis);
+  }
+
+  mouseOverTooltipCB(event, d) {
+    const tooltip = d3.select('#tooltip');
+    const tooltipElm = tooltip.node();
+    const tooltipBounds = tooltipElm.getBoundingClientRect();
+    const chartBounds = this.config.parentElement.getBoundingClientRect();
+    tooltip
+      .style('pointer-events', 'all')
+      .style('opacity', '1')
+      .style(
+        'left',
+        Math.min(
+          event.pageX,
+          chartBounds.x + chartBounds.width - tooltipBounds.width
+        ) + 'px'
+      )
+      .style(
+        'top',
+        Math.min(
+          event.pageY,
+          chartBounds.y + chartBounds.height - tooltipBounds.height
+        ) + 'px'
+      ).html(`
+          <small>${d.display_name}</small>
+          <p>
+            <strong>${attributesMap[formData.attribute1]}</strong>
+            <i>(${formData.groupByAggregate})</i> 
+            </p>
+          <p>${d[formData.attribute1]}</p>
+              
+          <p>
+            <strong>${attributesMap[formData.attribute2]}</strong>
+            <i>(${formData.groupByAggregate})</i> 
+            </p>
+          <p>${d[formData.attribute2]}</p>
+        `);
+  }
+  mouseLeaveTooltipCB(event) {
+    d3.select('#tooltip').style('opacity', '0').style('pointer-events', 'none');
   }
 }

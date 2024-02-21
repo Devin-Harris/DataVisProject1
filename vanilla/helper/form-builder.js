@@ -32,6 +32,7 @@ class FormBuilder {
     this.appendGroupByFields();
     this.appendSortingSelect();
     // this.appendBarWidthSlider();
+    this.appendMapAttributeToggle();
 
     this.registerChangeCallbacks();
     requestAnimationFrame(() => {
@@ -49,6 +50,9 @@ class FormBuilder {
     );
     // this.barWidthSlider.addEventListener('input', () => this.handleChange());
     this.sortingSelect.addEventListener('change', () => this.handleChange());
+    this.mapAttributeToggleButton.addEventListener('click', (e) => {
+      this.toggleMapAttribute(e);
+    });
   }
 
   handleChange() {
@@ -62,7 +66,7 @@ class FormBuilder {
     // const barWidthValue = this.barWidthSlider.querySelector('input').value;
     const sortDirectionValue = this.sortingSelect.querySelector('select').value;
 
-    app.classList.remove(...app.classList.values());
+    app.classList.remove(...Object.keys(chartType));
     app.classList.add(chartTypeValue);
 
     this.groupBySelect.querySelector('select').disabled =
@@ -75,7 +79,7 @@ class FormBuilder {
     formData.groupBy = groupByValue;
     formData.groupByAggregate = groupByAggregateValue;
     formData.chartType = chartTypeValue;
-    // formData.barWidth = barWid thValue;
+    // formData.barWidth = barWidthValue;
     formData.barSortDirection = sortDirectionValue;
 
     groupedData = groupData(formData, data);
@@ -83,6 +87,8 @@ class FormBuilder {
     if (this.storedChartType !== chartTypeValue) {
       scatter?.destroy();
       bar?.destroy();
+      choro1?.destroy();
+      choro2?.destroy();
 
       if (chartTypeValue === 'Scatter') {
         scatter = new Scatterplot(
@@ -92,13 +98,24 @@ class FormBuilder {
       } else if (chartTypeValue === 'Bar') {
         bar = new BarChart({ parentElementSelector: '#bar' }, groupedData);
       } else if (chartTypeValue === 'Choropleth') {
-        // scatter?.updateData(groupedData);
+        choro1 = new Choropleth(
+          { parentElementSelector: '#choro1' },
+          geoData,
+          'attribute1'
+        );
+        choro2 = new Choropleth(
+          { parentElementSelector: '#choro2' },
+          geoData,
+          'attribute2'
+        );
       }
 
       this.storedChartType = chartTypeValue;
     }
     scatter?.updateData(groupedData);
     bar?.updateData(groupedData);
+    choro1?.updateData(geoData);
+    choro2?.updateData(geoData);
   }
 
   appendSortingSelect() {
@@ -116,7 +133,7 @@ class FormBuilder {
     input.type = 'range';
     input.min = 1;
     input.max = 150;
-    input.value = 150;
+    input.value = formData.barWidth;
 
     const label = document.createElement('label');
     label.for = 'bar-width-slider';
@@ -128,19 +145,33 @@ class FormBuilder {
     this.form.append(this.barWidthSlider);
   }
 
+  appendMapAttributeToggle() {
+    this.mapAttributeToggleButton = document.createElement('button');
+    this.mapAttributeToggleButton.classList.add('select-container');
+    this.mapAttributeToggleButton.id = 'map-attribute-toggle';
+    this.mapAttributeToggleButton.innerText = 'Toggle Map Attribute';
+    this.mapAttributeToggleButton.type = 'button';
+    this.form.append(this.mapAttributeToggleButton);
+    const app = document.getElementById('app');
+    app.classList.add(`map-selected-${formData.mapSelectedAttribute}`);
+  }
+
   appendGroupByFields() {
     this.groupBySelect = this.createSelect(groupByType, 'Group By');
+    this.groupBySelect.querySelector('select').value = formData.groupBy;
     this.form.append(this.groupBySelect);
     this.groupByAggregateSelect = this.createSelect(
       groupByAggregate,
       'Group By Aggregate'
     );
+    this.groupByAggregateSelect.querySelector('select').value =
+      formData.groupByAggregate;
     this.form.append(this.groupByAggregateSelect);
   }
 
   appendChartType() {
     this.chartType = this.createSelect(chartType, 'Chart Type');
-    this.chartType.querySelector('select').value = 'Scatter';
+    this.chartType.querySelector('select').value = formData.chartType;
     this.form.append(this.chartType);
   }
 
@@ -150,14 +181,13 @@ class FormBuilder {
       'Attribute 1',
       this.attributesToExclude
     );
-    this.attribute1Select.querySelector('select').value =
-      'education_less_than_high_school_percent';
+    this.attribute1Select.querySelector('select').value = formData.attribute1;
     this.attribute2Select = this.createSelect(
       attributesMap,
       'Attribute 2',
       this.attributesToExclude
     );
-    this.attribute2Select.querySelector('select').value = 'poverty_perc';
+    this.attribute2Select.querySelector('select').value = formData.attribute2;
 
     this.form.append(this.attribute1Select);
     this.form.append(this.attribute2Select);
@@ -186,5 +216,18 @@ class FormBuilder {
     container.append(labelElm);
     container.append(selectElm);
     return container;
+  }
+
+  toggleMapAttribute(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const preAttribute = formData.mapSelectedAttribute;
+    formData.mapSelectedAttribute =
+      preAttribute === 'attribute1' ? 'attribute2' : 'attribute1';
+
+    const app = document.getElementById('app');
+    app.classList.add(`map-selected-${formData.mapSelectedAttribute}`);
+    app.classList.remove(`map-selected-${preAttribute}`);
   }
 }

@@ -65,7 +65,10 @@ body {
     position: relative;
   }
   #bar,
-  #scatter {
+  #scatter,
+  #choro1,
+  #choro2 {
+    pointer-events: none;
     opacity: 0;
     position: absolute;
     top: 0;
@@ -85,11 +88,74 @@ body {
     }
     #bar {
       opacity: 1;
+      pointer-events: all;
     }
   }
   &.Scatter {
     #scatter {
       opacity: 1;
+      pointer-events: all;
     }
+  }
+  &.Choropleth {
+    &.map-selected-attribute1 {
+      #choro1 {
+        opacity: 1;
+        pointer-events: all;
+      }
+    }
+    &.map-selected-attribute2 {
+      #choro2 {
+        opacity: 1;
+        pointer-events: all;
+      }
+    }
+
+    .lhs {
+      #form {
+        #map-attribute-toggle {
+          display: block;
+        }
+      }
+    }
+  }
+}
+
+#tooltip {
+  position: fixed;
+  opacity: 0;
+  transition: 1s;
+  background: #fff;
+  box-shadow: 3px 3px 3px 0px rgb(92 92 92 / 0.5);
+  border: 1px solid #ddd;
+  padding: 8px;
+  min-width: 160px;
+  color: #333;
+  border-radius: 0.5em;
+  font-size: large;
+}
+
+#choro1,
+#choro2 {
+  .county-boundary {
+    stroke: #fff;
+    stroke-width: 0.125px;
+  }
+  .county-boundary.selected {
+    stroke: orange;
+    stroke-width: 2px;
+  }
+
+  .county-boundary:hover,
+  .state:hover {
+    fill: orange;
+  }
+  #state-borders {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 0.5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
   }
 }
