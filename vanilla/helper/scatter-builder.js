@@ -137,7 +137,6 @@ class Scatterplot {
 
   updateData(data) {
     this.data = data;
-    console.log(data);
     this.updateVis();
   }
 
