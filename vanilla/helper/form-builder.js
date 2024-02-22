@@ -98,10 +98,8 @@ class FormBuilder {
       scatter = null;
       bar?.destroy();
       bar = null;
-      choro1?.destroy();
-      choro1 = null;
-      choro2?.destroy();
-      choro2 = null;
+      choro?.destroy();
+      choro = null;
 
       if (chartTypeValue === 'Scatter') {
         scatter = new Scatterplot(
@@ -111,24 +109,14 @@ class FormBuilder {
       } else if (chartTypeValue === 'Bar') {
         bar = new BarChart({ parentElementSelector: '#bar' }, groupedData);
       } else if (chartTypeValue === 'Choropleth') {
-        choro1 = new Choropleth(
-          { parentElementSelector: '#choro1' },
-          geoData,
-          'attribute1'
-        );
-        choro2 = new Choropleth(
-          { parentElementSelector: '#choro2' },
-          geoData,
-          'attribute2'
-        );
+        choro = new Choropleth({ parentElementSelector: '#choro' }, geoData);
       }
 
       this.storedChartType = chartTypeValue;
     }
     scatter?.updateData(groupedData);
     bar?.updateData(groupedData);
-    choro1?.updateData(geoData);
-    choro2?.updateData(geoData);
+    choro?.updateData(geoData);
   }
 
   appendSortingSelect() {
@@ -239,8 +227,14 @@ class FormBuilder {
     formData.mapSelectedAttribute =
       preAttribute === 'attribute1' ? 'attribute2' : 'attribute1';
 
-    const app = document.getElementById('app');
-    app.classList.add(`map-selected-${formData.mapSelectedAttribute}`);
-    app.classList.remove(`map-selected-${preAttribute}`);
+    choro?.updateVis();
+  }
+
+  storeSelection(selection, ct) {
+    storedSelection[chartType.Scatter] = null;
+    storedSelection[chartType.Bar] = null;
+    storedSelection[chartType.Choropleth] = null;
+
+    storedSelection[ct] = selection;
   }
 }

@@ -7,14 +7,16 @@ class Choropleth {
   xScale = null;
   yScale = null;
 
-  constructor(_config, _data, _attribute) {
+  attribute1Range = ['#e2f2cf', '#306b0d'];
+  attribute2Range = ['#cfe2f2', '#0d306b'];
+
+  constructor(_config, _data) {
     this.config = {
       parentElement: document.querySelector(_config.parentElementSelector),
       parentElementSelector: _config.parentElementSelector,
       margin: _config.margin || { top: 40, right: 50, bottom: 40, left: 50 },
     };
     this.data = _data;
-    this.attribute = _attribute;
     this.initVis();
     window.addEventListener('resize', () => {
       // Reinitialize because projection needs to be scaled to new width and height, but doing so auto appends map again causing layered maps when page resizes
@@ -51,14 +53,7 @@ class Choropleth {
     this.setWidthAndHeight();
 
     // Initialize scales
-    this.colorScale = d3
-      .scaleLinear()
-      .range(
-        this.attribute === 'attribute1'
-          ? ['#e2f2cf', '#306b0d']
-          : ['#cfe2f2', '#0d306b']
-      )
-      .interpolate(d3.interpolateHcl);
+    this.colorScale = d3.scaleLinear().interpolate(d3.interpolateHcl);
 
     // Initialize Projection and Path
     this.projection = d3
@@ -92,15 +87,29 @@ class Choropleth {
    * Prepare the data and scales before we render it.
    */
   updateVis() {
-    this.colorScale.domain(
-      d3.extent(this.data.objects.counties.geometries, (d) =>
-        d.properties.data &&
-        d.properties.data[formData[this.attribute]] !== undefined
-          ? Math.max(d.properties.data[formData[this.attribute]], 0)
-          : 0
+    this.colorScale
+      .range(
+        formData.mapSelectedAttribute === 'attribute1'
+          ? this.attribute1Range
+          : this.attribute2Range
       )
+      .domain(
+        d3.extent(this.data.objects.counties.geometries, (d) =>
+          d.properties.data &&
+          d.properties.data[formData[formData.mapSelectedAttribute]] !==
+            undefined
+            ? Math.max(
+                d.properties.data[formData[formData.mapSelectedAttribute]],
+                0
+              )
+            : 0
+        )
+      );
+    legendBuilder.setChoroplethColorScale(
+      this.attribute1Range,
+      this.attribute2Range,
+      this.colorScale
     );
-    legendBuilder.setChoroplethColorScale(this.attribute, this.colorScale);
 
     const dataGroup = this.chart
       .append('g')
@@ -111,18 +120,36 @@ class Choropleth {
       .selectAll('path')
       .data(topojson.feature(this.data, this.data.objects.counties).features)
       .enter()
-      .append('path')
+      .append('path');
+
+    counties
       .attr('d', this.path)
+
       .attr('class', (d) => {
-        return `county-boundary county-${d.properties.data?.cnty_fips}`;
+        const data = d.properties.data;
+        if (!data) {
+          return '';
+        }
+
+        const classes = ['county-boundary', `county-${data?.cnty_fips}`];
+
+        if (selectedPoints?.has(getGroupByValue(formData.groupBy, data))) {
+          classes.push('selected');
+        }
+
+        return classes.join(' ');
       })
+      .transition()
       .attr('fill', (d) => {
         if (
           d.properties.data &&
-          d.properties.data[formData[this.attribute]] !== undefined &&
-          d.properties.data[formData[this.attribute]] >= 0
+          d.properties.data[formData[formData.mapSelectedAttribute]] !==
+            undefined &&
+          d.properties.data[formData[formData.mapSelectedAttribute]] >= 0
         ) {
-          return this.colorScale(d.properties.data[formData[this.attribute]]);
+          return this.colorScale(
+            d.properties.data[formData[formData.mapSelectedAttribute]]
+          );
         } else {
           return 'url(#lightstripe)';
         }
@@ -144,17 +171,15 @@ class Choropleth {
       )
       .on('mouseleave', () => this.mouseLeaveTooltipCB())
       .on('click', (e, d) => {
-        // choroplethStore.update((s) => ({
-        //   selectedData: s.selectedData.some(
-        //     (sd) =>
-        //       sd.properties.data.cnty_fips === d.properties.data.cnty_fips,
-        //   )
-        //     ? s.selectedData.filter(
-        //         (sd) =>
-        //           sd.properties.data.cnty_fips !== d.properties.data.cnty_fips,
-        //       )
-        //     : [...s.selectedData, d],
-        // })),
+        const data = d.properties.data;
+        const value = getGroupByValue(formData.groupBy, data);
+
+        if (selectedPoints.has(value)) {
+          selectedPoints.delete(value);
+        } else {
+          selectedPoints.add(value);
+        }
+        this.updateVis();
       });
 
     const tooltip = d3.select('#tooltip');

@@ -66,8 +66,7 @@ body {
   }
   #bar,
   #scatter,
-  #choro1,
-  #choro2 {
+  #choro {
     pointer-events: none;
     opacity: 0;
     position: absolute;
@@ -125,19 +124,10 @@ body {
     }
   }
   &.Choropleth {
-    &.map-selected-attribute1 {
-      #choro1 {
-        opacity: 1;
-        pointer-events: all;
-      }
+    #choro {
+      opacity: 1;
+      pointer-events: all;
     }
-    &.map-selected-attribute2 {
-      #choro2 {
-        opacity: 1;
-        pointer-events: all;
-      }
-    }
-
     .lhs {
       #form {
         #map-attribute-toggle {
@@ -162,8 +152,7 @@ body {
   font-size: large;
 }
 
-#choro1,
-#choro2 {
+#choro {
   .county-boundary {
     stroke: #fff;
     stroke-width: 0.125px;

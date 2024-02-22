@@ -12,9 +12,7 @@ let scatter = null;
 
 let bar = null;
 
-let choro1 = null;
-
-let choro2 = null;
+let choro = null;
 
 const sortDirection = {
   None: 'None',

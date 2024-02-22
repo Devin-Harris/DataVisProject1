@@ -78,7 +78,7 @@ class BarChart {
       d3.brushX().on('start brush end', (e) => {
         let extent = e.selection;
         selectedPoints.clear();
-        storedSelection[chartType.Bar] = e.selection;
+        formBuilder.storeSelection(e.selection, chartType.Bar);
 
         if (extent) {
           this.rectangleGroups.each((d, i, j) => {
@@ -93,7 +93,7 @@ class BarChart {
             let isBrushed = extent[0] <= cx && extent[1] >= cx;
 
             if (isBrushed) {
-              selectedPoints.add(getGroupByValue(formData, d));
+              selectedPoints.add(getGroupByValue(formData.groupBy, d));
             }
           });
         }
@@ -136,7 +136,7 @@ class BarChart {
 
     this.dataGroup = this.chart.append('g').attr('class', 'data-group');
 
-    this.updateVis();
+    this.updateVis(false);
     this.svg.transition().call(this.zoom.scaleTo, 100);
     if (storedSelection[chartType.Bar]) {
       this.chart
@@ -159,7 +159,7 @@ class BarChart {
   /**
    * Prepare the data and scales before we render it.
    */
-  updateVis() {
+  updateVis(transition = true) {
     // Initialize linear and ordinal scales (input domain and output range)
     this.colorScale.domain([
       attributesMap[formData.attribute1],
@@ -215,7 +215,7 @@ class BarChart {
       .join('g')
       .attr('class', (d) => {
         const classes = ['data-point'];
-        if (selectedPoints?.has(getGroupByValue(formData, d))) {
+        if (selectedPoints?.has(getGroupByValue(formData.groupBy, d))) {
           classes.push('selected');
         }
         return classes.join(' ');
@@ -257,6 +257,7 @@ class BarChart {
         return classes.join(' ');
       })
       .transition()
+      .duration(transition ? 250 : 0)
       .attr('width', (d) => {
         let bandwidth = this.xScale.bandwidth();
         if (selectedLegendGroups.size > 1) {
@@ -266,6 +267,7 @@ class BarChart {
         return Math.max(bandwidth, 0);
       })
       .transition()
+      .duration(transition ? 250 : 0)
       .attr('height', (d) => {
         return this.height - Math.max(this.yScale(d.value) ?? 0, 0);
       })

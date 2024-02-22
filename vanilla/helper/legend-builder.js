@@ -33,7 +33,6 @@ class LegendBuilder {
     this.storedDomain = colorScale.domain();
 
     this.removeFieldSet();
-    selectedLegendGroups.clear();
 
     const legendColors = document.createElement('div');
     legendColors.classList.add('legend-colors');
@@ -107,10 +106,16 @@ class LegendBuilder {
     this.fieldSetElm.append(legendColors);
   }
 
-  setChoroplethColorScale(attribute, colorScale) {
-    chartLegends[chartType.Choropleth][attribute] = colorScale;
+  setChoroplethColorScale(attribute1Range, attribute2Range, colorScale) {
+    chartLegends[chartType.Choropleth].attribute1 = colorScale
+      .copy()
+      .range(attribute1Range);
+    chartLegends[chartType.Choropleth].attribute2 = colorScale
+      .copy()
+      .range(attribute2Range);
 
     this.removeFieldSet();
+    this.storedDomain = colorScale.domain();
 
     const container = document.createElement('div');
     container.classList.add('choro-legend-container');

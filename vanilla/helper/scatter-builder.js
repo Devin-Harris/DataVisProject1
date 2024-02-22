@@ -69,32 +69,6 @@ class Scatterplot {
         'transform',
         `translate(${this.config.margin.left},${this.config.margin.top / 2})`
       );
-    this.brush = d3.brush();
-    this.chart.call(
-      d3.brush().on('start brush end', (e) => {
-        let extent = e.selection;
-        selectedPoints.clear();
-
-        storedSelection[chartType.Scatter] = e.selection;
-
-        if (extent && extent[0] && extent[1]) {
-          this.circles.each((d, i, j) => {
-            let circle = j[i];
-            // Is the circle in the selection?
-            let isBrushed =
-              extent[0][0] <= circle.getAttribute('cx') &&
-              extent[1][0] >= circle.getAttribute('cx') &&
-              extent[0][1] <= circle.getAttribute('cy') &&
-              extent[1][1] >= circle.getAttribute('cy');
-
-            if (isBrushed) {
-              selectedPoints.add(getGroupByValue(formData, d));
-            }
-          });
-        }
-        this.updateVis();
-      })
-    );
 
     // Append empty x-axis group and move it to the bottom of the chart
     this.xAxisG = this.chart
@@ -125,7 +99,34 @@ class Scatterplot {
       .attr('fill', '#5D6971')
       .text(attributesMap[formData.attribute2]);
 
-    this.updateVis();
+    this.brush = d3.brush();
+    this.chart.call(
+      d3.brush().on('start brush end', (e) => {
+        let extent = e.selection;
+        selectedPoints.clear();
+
+        formBuilder.storeSelection(e.selection, chartType.Scatter);
+
+        if (extent && extent[0] && extent[1]) {
+          this.circles.each((d, i, j) => {
+            let circle = j[i];
+            // Is the circle in the selection?
+            let isBrushed =
+              extent[0][0] <= +circle.getAttribute('cx') &&
+              extent[1][0] >= +circle.getAttribute('cx') &&
+              extent[0][1] <= +circle.getAttribute('cy') &&
+              extent[1][1] >= +circle.getAttribute('cy');
+
+            if (isBrushed) {
+              selectedPoints.add(getGroupByValue(formData.groupBy, d));
+            }
+          });
+        }
+        this.updateVis();
+      })
+    );
+
+    this.updateVis(false);
 
     if (storedSelection[chartType.Scatter]) {
       this.chart
@@ -136,6 +137,7 @@ class Scatterplot {
 
   updateData(data) {
     this.data = data;
+    console.log(data);
     this.updateVis();
   }
 
@@ -192,7 +194,7 @@ class Scatterplot {
   /**
    * Prepare the data and scales before we render it.
    */
-  updateVis() {
+  updateVis(transition = true) {
     this.updateScales();
 
     // Set axis labels
@@ -221,7 +223,7 @@ class Scatterplot {
           );
         }
 
-        if (selectedPoints?.has(getGroupByValue(formData, d))) {
+        if (selectedPoints?.has(getGroupByValue(formData.groupBy, d))) {
           classes.push('selected');
         }
 
@@ -230,6 +232,7 @@ class Scatterplot {
 
     this.circles
       .transition()
+      .duration(transition ? 250 : 0)
       .attr('fill', (d) =>
         this.colorScale(
           getGroupByValue(
@@ -240,18 +243,19 @@ class Scatterplot {
         )
       )
       .transition()
-      .attr('cx', (d) =>
-        formData.attribute1
-          ? this.xScale(d[formData.attribute1])
-          : this.width + 100
-      )
+      .duration(transition ? 250 : 0)
+      .attr('cx', (d) => {
+        let scaleVal = this.xScale(d[formData.attribute1]);
+        return isNaN(scaleVal) ? 0 : scaleVal;
+      })
       .transition()
-      .attr('cy', (d) =>
-        formData.attribute2
-          ? this.yScale(d[formData.attribute2])
-          : this.height + 100
-      )
+      .duration(transition ? 250 : 0)
+      .attr('cy', (d) => {
+        let scaleVal = this.yScale(d[formData.attribute2]);
+        return isNaN(scaleVal) ? 0 : scaleVal;
+      })
       .transition()
+      .duration(transition ? 250 : 0)
       .attr(
         'r',
         formData.groupBy === 'State'
