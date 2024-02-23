@@ -70,8 +70,6 @@ class FormBuilder {
     app.classList.remove(...Object.keys(chartType));
     app.classList.add(chartTypeValue);
 
-    this.groupBySelect.querySelector('select').disabled =
-      chartTypeValue === 'Choropleth';
     this.groupByAggregateSelect.querySelector('select').disabled =
       groupByValue === 'County' || chartTypeValue === 'Choropleth';
 

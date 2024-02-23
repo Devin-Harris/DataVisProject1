@@ -28,6 +28,16 @@ class BarChart {
       this.config.parentElement.getBoundingClientRect().height -
       this.config.margin.top -
       this.config.margin.bottom;
+
+    this.zoom
+      ?.translateExtent([
+        [0, 0],
+        [this.width, this.height],
+      ])
+      .extent([
+        [0, 0],
+        [this.width, this.height],
+      ]);
   }
 
   removeContent() {
@@ -237,16 +247,6 @@ class BarChart {
 
     this.clipPath.attr('width', this.width).attr('height', this.height);
 
-    this.zoom
-      .translateExtent([
-        [0, 0],
-        [this.width, this.height],
-      ])
-      .extent([
-        [0, 0],
-        [this.width, this.height],
-      ]);
-
     // Set axis labels
     d3.select('.x-axis-title')
       .attr('x', this.width / 2)
@@ -341,13 +341,31 @@ class BarChart {
       .on('mouseover', (event, d) =>
         this.mouseOverTooltipCB(event, d.data, 'attribute1')
       )
-      .on('mouseleave', () => this.mouseLeaveTooltipCB());
+      .on('mouseleave', () => this.mouseLeaveTooltipCB())
+      .on('click', (e, d) => {
+        const value = getGroupByValue(formData.groupBy, d.data);
+        if (selectedPoints.has(value)) {
+          selectedPoints.delete(value);
+        } else {
+          selectedPoints.add(value);
+        }
+        this.updateVis();
+      });
     this.rectangleGroups
       .selectAll('.bar.attribute2')
       .on('mouseover', (event, d) =>
         this.mouseOverTooltipCB(event, d.data, 'attribute2')
       )
-      .on('mouseleave', () => this.mouseLeaveTooltipCB());
+      .on('mouseleave', () => this.mouseLeaveTooltipCB())
+      .on('click', (e, d) => {
+        const value = getGroupByValue(formData.groupBy, d.data);
+        if (selectedPoints.has(value)) {
+          selectedPoints.delete(value);
+        } else {
+          selectedPoints.add(value);
+        }
+        this.updateVis();
+      });
 
     // Update the axes/gridlines
     this.xAxisG.call(this.xAxis);

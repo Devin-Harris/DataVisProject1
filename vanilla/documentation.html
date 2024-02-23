@@ -47,6 +47,7 @@
           <li><a href="#discovery">Discovery</a></li>
           <li><a href="#future">Future Works</a></li>
           <li><a href="#process">Process</a></li>
+          <li><a href="#video">Video</a></li>
         </ul>
       </nav>
     </header>
@@ -63,6 +64,13 @@
             how these factors can influence each other while also providing
             quantitative data to each U.S. County.
           </p>
+          <p>
+            Another source of motivation for this project was to get accustomed
+            to the d3js library. This library helps aid in creating various
+            charts through the use of dynamically created svgs. This library is
+            heavily used in the CS 5124 - VISUAL INTERFACES DATA course which I
+            took in my senior year and thus where this project stemmed from.
+          </p>
         </div>
       </section>
 
@@ -73,10 +81,18 @@
             The data behind this project was pulled from the US heart and stroke
             atlas (<a href="https://www.cdc.gov/dhdsp/maps/atlas/index.htm"
               >https://www.cdc.gov/dhdsp/maps/atlas/index.htm</a
-            >) and was represented by a csv with attributes such as
-            poverty_perc, air_quality, urban_rural_status, and many others per
-            U.S. county.
+            >) and was represented by a csv with attributes cnty_fips,
+            display_name, poverty_perc, median_household_income,
+            education_less_than_high_school_percent, air_quality, park_access,
+            percent_inactive, percent_smoking, urban_rural_status,
+            elderly_percentage, number_of_hospitals,
+            number_of_primary_care_physicians, percent_no_heath_insurance,
+            percent_high_blood_pressure, percent_coronary_heart_disease,
+            percent_stroke, percent_high_cholesterol per U.S. county.
           </p>
+
+          <p>You can download the data here to see for yourself!</p>
+          <a href="./data/national_health_data.csv" download>Download</a>
         </div>
       </section>
 
@@ -84,15 +100,39 @@
         <h2>Sketches</h2>
         <div class="section-content">
           <p>
-            I made the following sketch at the beginning of this project to help
-            illustrate how I could visually represent this data in an
+            I made the following sketches at the beginning of this project to
+            help illustrate how I could visually represent this data in an
             easy-to-understand way.
           </p>
-
-          <img class="sketch" src="./assets/images/sketch.jpg" />
-          <small>
-            * More on reasoning behind these components in the gui section *
-          </small>
+          <div class="sketch-container">
+            <div class="sketch2 sketch">
+              <img class="sketch" src="./assets/images/sketch2.jpg" />
+              <small> * Sketch 1 * </small>
+            </div>
+            <div class="sketch1 sketch">
+              <img src="./assets/images/sketch.jpg" />
+              <small> * Sketch 2 * </small>
+            </div>
+          </div>
+          <p>
+            The first sketch above was a first pass at how I could organize the
+            data into various chart types. You can see ideas around showing a
+            circle for every county in a scatter plot, showing 2 bars for each
+            county (1 bar for each attribute selected) in a bar chart, side by
+            side choropleth maps, and even bar charts based on percentage ranges
+            and county count on the y axis were some ideas I had originally.
+          </p>
+          <p>
+            The second sketch was a refinement on the ideas put forth in the
+            first sketch. In the second sketch you can see I pulled out some
+            common controls like attribute selection, chart type selection and
+            even started lofting the idea of aggregation selections into a left
+            hand side form panel. Then I would have the right hand side show 1
+            chart at a time, possibly even using a carousel type interaction for
+            switching between chart types. This of course is still a little off
+            from my final version but ideas from this sketch were very closely
+            followed in the final implementation.
+          </p>
         </div>
       </section>
 
@@ -100,7 +140,7 @@
         <h2>Gui</h2>
         <div class="section-content">
           <p>
-            The above sketch then translated to the actual visualization of
+            The above sketches then translated to the actual visualization of
             these components in my app gui.
           </p>
           <div class="images">
@@ -126,39 +166,45 @@
             Take the maximum value? This is where the group by aggregate
             selection came in. This allows users to not only group datapoints
             together but decide how to aggregate the values of that group as
-            well. You may also notice that when the bar chart is selected, there
-            are some additional selectors.
+            well.
+          </p>
+          <p>
+            You may also notice there are some additional controls when the bar
+            and choropleth maps are selected. At first, I wanted to display two
+            maps side by side (1 for each attribute) but quickly realized that
+            horizontal scroll would be needed to do this and comparing over
+            scroll felt incorrect. Thus, I opted to add more controls on the
+            right-hand side to allow the user to toggle how the coloring is
+            applied to a single map (based on the first or second attribute
+            depending on how many times the toggle button is clicked). This
+            prevents the user from having to sift their eyes across two
+            different maps when they want to compare those hot/low spots I
+            mentioned above, while also giving more screen real estate to the
+            map.
           </p>
           <ul>
             <li>
-              The first is a slider to denote the minimum width of each bar in
-              the bar chart. This was created after I realized rendering two
-              bars for each county (1 for each attribute selected) required more
-              space than my laptop had to assign even 1px to said bars. Thus, I
-              added a minimum width of 150px to each bar and allowed horizontal
-              scrolling on said chart. This helps in cases where there are a lot
-              of bars on the chart but detracted from the ability for users to
-              see overall trends. Allowing them to decrease that min width pulls
-              more data points into view to better assess those overall trends
-              (with the drawback of potential x-axis overlapping).
+              The first is a sorting selector on the bar chart. This was created
+              to help assess the overall trend of the data. Assessing which
+              county/state has the highest/lowest value in the bar chart was
+              difficult before this selector. With it, sorting allows you to
+              pull the highest or lowest values to the left most points on the
+              graph which also help show the general slopes of whichever
+              attribute you are sorting over. Alphabetical sorting also helps
+              users find a specific county/state/urban rural status they are
+              looking for without having to scroll blindly. It also allows for
+              comparing the growth/decay over two attributes to help identify if
+              there is some correaltion between them.
             </li>
-            <li>
-              The second is a sorting selector. This was created again to help
-              assess that overall trend I mentioned in the point above.
-              Assessing which county/state has the highest/lowest value in the
-              bar chart was difficult before this selector. With it, sorting
-              allows you to pull the highest or lowest values to the left most
-              points on the graph which also help show the general slopes of
-              whichever attribute you are sorting over. Alphabetical sorting
-              also helps users find a specific county/state/urban rural status
-              they are looking for without having to scroll blindly.
-            </li>
+            <li>The second is a toggle button on the chorpleth map.</li>
           </ul>
           <p>
             There is also a legend section to help illustrate what colors line
             up to what groups or values, again depending on chart type. The
-            following rules were followed for this legend and color scheme
-            building within the charts:
+            legend can also help with filtering down the dataset as well.
+            Clicking a color swatch with show/hide that group from the chart
+            making it easier to hide outliers. The following rules were followed
+            for this legend and color scheme building within the charts:
           </p>
           <ul>
             <li>
@@ -170,11 +216,11 @@
             </li>
             <li>
               Bar charts color their bars based on attribute. I decided to show
-              bar charts as two bar per x axis tick because it helped to compare
-              the two attributes per county/state/urban-rural-status easier.
-              This of course led me towards keeping the colors consistent
-              between attributes to better showcase how they compare across
-              different points on the x-axis.
+              bar charts as two bars per x axis tick because it helped to
+              compare the two attributes per county/state/urban-rural-status
+              easier. This of course led me towards keeping the colors
+              consistent between attributes to better showcase how they compare
+              across different points on the x-axis.
             </li>
             <li>
               Choropleth maps used a green and blue sequential scale for the 1st
@@ -185,19 +231,20 @@
             </li>
           </ul>
           <p>
-            Finally, the choropleth maps behave in an interesting way. At first,
-            I wanted to display two maps side by side (1 for each attribute) but
-            quickly realized that horizontal scroll would be needed to do this
-            and comparing over scroll felt incorrect. Thus, I opted to add more
-            controls on the right-hand side to allow the user to toggle how the
-            coloring is applied to a single map (based on the first or second
-            attribute depending on how many times the toggle button is clicked).
-            This prevents the user from having to sift their eyes across two
-            different maps when they want to compare those hot/low spots I
-            mentioned above while also giving more screen real estate to the
-            map. This chart also allows for selecting counties (which show up in
-            that right hand side as well as with a border highlight on the map)
-            for easy comparing between these two attributes as well.
+            Finally, there are some interesting interactions that can be made
+            within these charts. Brushing to select certain datapoints is
+            possible on the scatter plot chart. These selections are highlighted
+            across the other chart types as well. Brushing was difficult to
+            implement in the bar chart because zooming and panning was
+            incorporated there. This was partly because when grouping by
+            counties, in most cases there is not enough space to assign at least
+            1 pixel to every bar chart, so allowing the user to zoom in was
+            necessary to get any use out of the bar chart on that group by. This
+            zooming conflicted with the brushing implementation so the bar just
+            shows selections made from other graphs instead. The choropleth map
+            also had a brushing problem, but selecting can still be done from
+            this chart. Simply clicking on a county will toggle its selected
+            state and that will propogate across the other charts as well.
           </p>
         </div>
       </section>
@@ -209,28 +256,45 @@
             There were tons of findings you can discover with this application.
             Here are some interesting ones I found:
           </p>
-          <div class="images images-nowrap">
+          <div class="disc1">
             <img src="./assets/images/P1-Discovery-1.png" />
             <p>
-              Above I selected “Education &lt; Highschool %” as my x-axis and
-              “Poverty %” as my y axis. Grouping by state we then see that on
-              average the more people with less than high school education the
-              more people there are in poverty (in general)
+              To the left I selected “Education &lt; Highschool %” as my x-axis
+              and “Poverty %” as my y axis. Grouping by state we then see that
+              on average the more people with less than high school education
+              the more people there are in poverty (in general)
             </p>
           </div>
-          <div class="images images-nowrap">
-            <img src="./assets/images/P1-Discovery-2.png" />
+          <div class="disc2">
+            <div class="images">
+              <img src="./assets/images/P1-Discovery-2.png" />
+              <img src="./assets/images/P1-Discovery-2.1.png" />
+            </div>
             <p>
-              Above we see that the average “% of smokers” per state does not
-              really translate to the average “air quality” per state, which
-              seemed a little suprising.
+              Above we first see that the average “% of smokers” per state does
+              not really translate to the average “Elderly %” per state. I half
+              expected some correaltion because smoking (at least in my opinion)
+              doesn't seem as common with my peers as I perceived it to be in
+              say my parents generation.
+            </p>
+            <p>
+              This lead me to group by urban rural status instead (shown in
+              second screenshot). With that grouping there is a definite
+              correlation suggesting the more rural you get not only the more
+              smokers there are, but the more elderly there are to.
             </p>
           </div>
-          <div class="images images-nowrap">
+          <div class="disc3">
             <img src="./assets/images/P1-Discovery-3.png" />
             <p>
-              And finally, above you can see the west has substantially more
-              park access than the east.
+              And finally, to the left I wanted to view park access across the
+              United States. You can see a substantially shift as you enter the
+              west where the west has way more park access than the east (again
+              in general). I was not able to find another attribute that
+              followed this trend. Maybe if our dataset had more information on
+              say population density, or temperature readings, a correlation
+              between park access and those attributes could shed light on this
+              phenomenon.
             </p>
           </div>
         </div>
@@ -241,17 +305,28 @@
         <div class="section-content">
           <p>
             There are some improvements I would liked to have made to this
-            project given I had the time. Firstly, I wanted to be able to click
-            the legend swatches on the bar and scatter charts to hide/show
-            certain data points. This would have allowed a lot more narrowing of
-            comparisons, which I think could be useful. I also would have liked
-            to utilize the selection I did on the maps with the other charts.
-            Maybe selecting counties over any chart could show up in the
-            right-hand side regardless of chart type? My main question on that
-            was how would changing the group by selection affect that. If I had
+            project given I had the time. Firstly, I would have liked to improve
+            the brushing/selection I did on the scatter plot with the other
+            charts. My main question on I kept trying to answer was how would
+            changing the group by selection affect the selection. If I had
             counties selected, then switched to selecting states I would
             probably have to clear the previous selection which I haven’t
-            decided if I’m ok with thus why I didn’t do it.
+            decided if I’m ok with thus why I didn’t fully opt into that on the
+            other graphs where brushing was already problematic.
+          </p>
+          <p>
+            I also would have liked to improve the bar chart when grouping by
+            counties. There are so many counties that without zooming in the bar
+            chart is pretty much useless with that grouping. Possibly having a
+            secondary area chart to replace the zooming/panning logic could open
+            up more options especially around brushing that I mentioned above.
+            Here was an example of this that I tried implementing but was
+            unsuccessful in the end:
+            <a
+              target="_blank"
+              href="https://plnkr.co/edit/qnh9Q4ZF7gzGomZaBj6C?p=preview&preview"
+              >Link</a
+            >
           </p>
         </div>
       </section>
@@ -260,33 +335,52 @@
         <h2>Process</h2>
         <div class="section-content">
           <p>
-            For this project I used d3, svelte, and typescript. I unfortunately
-            was told this was not allowed late into the project. Reasons being
-            for consistency between projects and other classmates. I however
-            have javascript experience and wanted my portfolio to showcase a new
-            skill so hopefully this does not detract from the project.
+            For this project I used d3, plain javascript, html, and css. I
+            unfortunately was told things like svelte and typescript were not
+            allowed late into the project. Reasons being for consistency between
+            projects and other classmates. I however had made quite a bit of
+            progress using those tools thus why if you look at the code there
+            are a lot of svelte related snippets. Hopefully this does not
+            detract from the project but the live versions code all exists
+            within the "vanilla" folder within the linked repo.
           </p>
           <p>
-            Because I used svelte I built components for each of my chart types
-            instead of the class based approach the vanilla JavaScript examples
-            provided. I then had a form component and utilized svelte stores to
-            share the selections from this form to the chart components as they
-            changed. This opened the door for me to provide wrapper container
-            components that conditionally rendered one of the charts based on
-            the chart type, and automatically regrouped the data and
-            reinitialized the chart components when the group by or group by
-            aggregate values changed.
+            The general approach I had was to define a "globals.js" file where
+            all my shared variables (such as attributes selected, group by
+            selected, etc...) could be defined. Then utilizing classes I created
+            builders for various areas of my code. For example the
+            form-builder.js is a class responsible for dynamically building all
+            the controls (excluding the legend pieces which was done in the
+            legend-builder) and listening the various change and input events on
+            them. This form builder could then trigger updates on the global
+            scatter, bar, and choro variables which themselves were set to
+            instances of new scatter-builder, bar-builder, and
+            choropleth-builder classes. This approach allowed for seperation of
+            concerns while allowing interactions to be shared between charts.
           </p>
           <p>
-            You can run it by cloning the project, installing Node and Npm,
-            running “npm install” in the terminal from inside the cloned
-            directory, and running “npm run dev” to start a local instance of
-            the project.
+            You can run it by cloning the project, and opening the index.html
+            with something like the "Live Server" extension in vscode.
           </p>
           <p>
             Check out the links below to view the live site and code as well!
           </p>
+
+          <p>
+            <a href="https://datavisproject1.devinharris.dev/">Live Site</a>
+          </p>
+          <p>
+            <a
+              href="https://github.com/Devin-Harris/DataVisProject1/tree/main/vanilla"
+              >Code</a
+            >
+          </p>
         </div>
+      </section>
+
+      <section id="video">
+        <h2>Video</h2>
+        <div class="section-content">test</div>
       </section>
     </div>
   </body>

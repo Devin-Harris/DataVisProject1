@@ -52,7 +52,7 @@ const attributesMap = {
   percent_high_blood_pressure: '% High Blood Pressure',
   percent_high_cholesterol: '% High Cholesterol',
   percent_inactive: '% Inactive',
-  percent_no_heath_insurance: '% No Heath Insurance',
+  percent_no_heath_insurance: '% No Health Insurance',
   percent_smoking: '% Smoking',
   percent_stroke: '% Stroke',
   poverty_perc: '% Poverty',
