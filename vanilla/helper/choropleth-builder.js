@@ -108,7 +108,8 @@ class Choropleth {
     legendBuilder.setChoroplethColorScale(
       this.attribute1Range,
       this.attribute2Range,
-      this.colorScale
+      this.colorScale,
+      this.data.objects.counties.geometries
     );
 
     const dataGroup = this.chart

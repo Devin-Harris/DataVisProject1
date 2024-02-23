@@ -106,13 +106,29 @@ class LegendBuilder {
     this.fieldSetElm.append(legendColors);
   }
 
-  setChoroplethColorScale(attribute1Range, attribute2Range, colorScale) {
+  setChoroplethColorScale(attribute1Range, attribute2Range, colorScale, data) {
     chartLegends[chartType.Choropleth].attribute1 = colorScale
       .copy()
-      .range(attribute1Range);
+      .range(attribute1Range)
+      .domain(
+        d3.extent(data, (d) =>
+          d.properties.data &&
+          d.properties.data[formData.attribute1] !== undefined
+            ? Math.max(d.properties.data[formData.attribute1], 0)
+            : 0
+        )
+      );
     chartLegends[chartType.Choropleth].attribute2 = colorScale
       .copy()
-      .range(attribute2Range);
+      .range(attribute2Range)
+      .domain(
+        d3.extent(data, (d) =>
+          d.properties.data &&
+          d.properties.data[formData.attribute2] !== undefined
+            ? Math.max(d.properties.data[formData.attribute2], 0)
+            : 0
+        )
+      );
 
     this.removeFieldSet();
     this.storedDomain = colorScale.domain();
@@ -160,6 +176,8 @@ class LegendBuilder {
     const higherText = document.createElement('small');
     higherText.innerText = scale.domain()[1];
 
+    lower.append(lowerText);
+    higher.append(higherText);
     choroScale.append(lower);
     choroScale.append(higher);
     choro.append(choroLabel);
