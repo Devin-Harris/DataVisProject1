@@ -309,13 +309,21 @@ class Scatterplot {
           <small>${d.display_name}</small>
           <p>
             <strong>${attributesMap[formData.attribute1]}</strong>
-            <i>(${formData.groupByAggregate})</i> 
+            ${
+              formData.groupBy !== 'County'
+                ? `<i>(${formData.groupByAggregate})</i>`
+                : ''
+            }
             </p>
           <p>${d[formData.attribute1]}</p>
               
           <p>
             <strong>${attributesMap[formData.attribute2]}</strong>
-            <i>(${formData.groupByAggregate})</i> 
+            ${
+              formData.groupBy !== 'County'
+                ? `<i>(${formData.groupByAggregate})</i>`
+                : ''
+            }
             </p>
           <p>${d[formData.attribute2]}</p>
         `);

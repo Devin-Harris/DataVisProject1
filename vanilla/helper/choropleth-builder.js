@@ -124,7 +124,6 @@ class Choropleth {
 
     counties
       .attr('d', this.path)
-
       .attr('class', (d) => {
         const data = d.properties.data;
         if (!data) {
@@ -216,13 +215,11 @@ class Choropleth {
           <small>${d.display_name}</small>
           <p>
             <strong>${attributesMap[formData.attribute1]}</strong>
-            <i>(${formData.groupByAggregate})</i> 
             </p>
           <p>${d[formData.attribute1]}</p>
               
           <p>
             <strong>${attributesMap[formData.attribute2]}</strong>
-            <i>(${formData.groupByAggregate})</i> 
             </p>
           <p>${d[formData.attribute2]}</p>
         `);

@@ -48,7 +48,8 @@ class BarChart {
 
     // Initialize scales
     this.colorScale = d3.scaleOrdinal(d3.schemeTableau10);
-    this.xScale = d3.scaleBand().range([0, this.width]).padding(0.1);
+    this.padding = 0.1;
+    this.xScale = d3.scaleBand().range([0, this.width]).padding(this.padding);
     this.yScale = d3.scaleLinear().range([this.height, 0]).nice();
 
     // Initialize axes
@@ -73,33 +74,33 @@ class BarChart {
         'transform',
         `translate(${this.config.margin.left},${this.config.margin.top / 2})`
       );
-    this.brush = d3.brushX();
-    this.chart.call(
-      d3.brushX().on('start brush end', (e) => {
-        let extent = e.selection;
-        selectedPoints.clear();
-        formBuilder.storeSelection(e.selection, chartType.Bar);
+    //  this.brush = d3.brushX();
+    //  this.chart.call(
+    //    d3.brushX().on('start brush end', (e) => {
+    //      let extent = e.selection;
+    //      selectedPoints.clear();
+    //      formBuilder.storeSelection(e.selection, chartType.Bar);
 
-        if (extent) {
-          this.rectangleGroups.each((d, i, j) => {
-            let rectGroup = j[i];
-            // Is the circle in the selection?
+    //      if (extent) {
+    //        this.rectangleGroups.each((d, i, j) => {
+    //          let rectGroup = j[i];
+    //          // Is the circle in the selection?
 
-            const width = +rectGroup.getAttribute('width');
-            const x = +rectGroup.getAttribute('x');
+    //          const width = +rectGroup.getAttribute('width');
+    //          const x = +rectGroup.getAttribute('x');
 
-            const cx = x + width / 2;
+    //          const cx = x + width / 2;
 
-            let isBrushed = extent[0] <= cx && extent[1] >= cx;
+    //          let isBrushed = extent[0] <= cx && extent[1] >= cx;
 
-            if (isBrushed) {
-              selectedPoints.add(getGroupByValue(formData.groupBy, d));
-            }
-          });
-        }
-        this.updateVis();
-      })
-    );
+    //          if (isBrushed) {
+    //            selectedPoints.add(getGroupByValue(formData.groupBy, d));
+    //          }
+    //        });
+    //      }
+    //      this.updateVis();
+    //    })
+    //  );
 
     // Append empty x-axis group and move it to the bottom of the chart
     this.xAxisG = this.chart
@@ -134,10 +135,36 @@ class BarChart {
         }`
       );
 
+    this.clipPath = this.svg
+      .append('defs')
+      .append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+      .attr('width', this.width)
+      .attr('height', this.height);
     this.dataGroup = this.chart.append('g').attr('class', 'data-group');
 
+    this.disclaimer = this.svg
+      .append('g')
+      .attr('class', 'disclaimer')
+      .attr(
+        'transform',
+        `translate(${this.width / 2 + this.config.margin.left}, ${
+          this.config.margin.top
+        })`
+      )
+      .attr('text-anchor', 'middle');
+
+    this.disclaimer
+      .append('text')
+      .attr('fill', 'red')
+      .attr('font-size', '.75em')
+      .attr('font-weight', 'bold')
+      .text(
+        `Too many datapoints to show! Try zooming in or grouping your data`
+      );
+
     this.updateVis(false);
-    this.svg.transition().call(this.zoom.scaleTo, 100);
     if (storedSelection[chartType.Bar]) {
       this.chart
         .transition()
@@ -153,6 +180,27 @@ class BarChart {
     this.updateVis();
     if (resetZoom) {
       this.svg.call(this.zoom.transform, d3.zoomIdentity);
+    }
+  }
+
+  updateDisclaimer() {
+    const firstDp = d3.select('.data-point').node();
+    const firstBar = d3.select('.bar').node();
+
+    const firstDpWidth = firstDp?.getBoundingClientRect().width ?? 0;
+    const firstBarWidth = firstBar?.getBoundingClientRect().width ?? 0;
+    const mult = firstDpWidth * firstBarWidth;
+
+    if (mult < 1 && !(Math.abs(1 - mult) <= this.padding)) {
+      this.disclaimer.attr('class', 'disclaimer show');
+      this.disclaimer.attr(
+        'transform',
+        `translate(${this.width / 2 + this.config.margin.left}, ${
+          this.config.margin.top
+        })`
+      );
+    } else {
+      this.disclaimer.attr('class', 'disclaimer hide');
     }
   }
 
@@ -187,6 +235,8 @@ class BarChart {
 
     this.yScale.domain([maxAtt, minAtt]).range([0, this.height]).nice();
 
+    this.clipPath.attr('width', this.width).attr('height', this.height);
+
     this.zoom
       .translateExtent([
         [0, 0],
@@ -208,6 +258,14 @@ class BarChart {
           attributesMap[formData.attribute2]
         }`
       );
+
+    let bandwidth = this.xScale.bandwidth();
+    if (selectedLegendGroups.size > 1) {
+      bandwidth /= selectedLegendGroups.size;
+      bandwidth -= selectedLegendGroups.size;
+    }
+    const barWidth = Math.max(bandwidth, 0);
+    this.updateDisclaimer();
 
     this.rectangleGroups = this.dataGroup
       .selectAll('.data-point')
@@ -258,14 +316,7 @@ class BarChart {
       })
       .transition()
       .duration(transition ? 250 : 0)
-      .attr('width', (d) => {
-        let bandwidth = this.xScale.bandwidth();
-        if (selectedLegendGroups.size > 1) {
-          bandwidth /= selectedLegendGroups.size;
-          bandwidth -= selectedLegendGroups.size;
-        }
-        return Math.max(bandwidth, 0);
-      })
+      .attr('width', barWidth)
       .transition()
       .duration(transition ? 250 : 0)
       .attr('height', (d) => {
@@ -338,13 +389,21 @@ class BarChart {
             attribute === 'attribute1'
               ? `<p>
                 <strong>${attributesMap[formData.attribute1]}</strong>
-                <i>(${formData.groupByAggregate})</i> 
+                ${
+                  formData.groupBy !== 'County'
+                    ? `<i>(${formData.groupByAggregate})</i>`
+                    : ''
+                }
                 </p>
               <p>${d[formData.attribute1]}</p>`
               : `
              <p>
               <strong>${attributesMap[formData.attribute2]}</strong>
-              <i>(${formData.groupByAggregate})</i> 
+              ${
+                formData.groupBy !== 'County'
+                  ? `<i>(${formData.groupByAggregate})</i>`
+                  : ''
+              }
               </p>
             <p>${d[formData.attribute2]}</p>`
           }
@@ -364,6 +423,13 @@ class BarChart {
       .attr('width', this.xScale.bandwidth())
       .attr('height', this.height);
 
+    let bandwidth = this.xScale.bandwidth();
+    if (selectedLegendGroups.size > 1) {
+      bandwidth /= selectedLegendGroups.size;
+      bandwidth -= selectedLegendGroups.size;
+    }
+    const barWidth = Math.max(bandwidth, 0);
+
     this.rectangleGroups
       .selectAll('.bar')
       .attr('x', (d, i) => {
@@ -375,16 +441,10 @@ class BarChart {
         }
         return x;
       })
-      .attr('width', (d) => {
-        let bandwidth = this.xScale.bandwidth();
-        if (selectedLegendGroups.size > 1) {
-          bandwidth /= selectedLegendGroups.size;
-          bandwidth -= selectedLegendGroups.size;
-        }
-        return Math.max(bandwidth, 0);
-      });
+      .attr('width', barWidth);
 
     this.svg.selectAll('.x-axis').call(this.xAxis);
+    this.updateDisclaimer();
   }
 
   sortBarData(data) {

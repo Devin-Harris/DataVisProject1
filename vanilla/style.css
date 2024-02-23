@@ -27,7 +27,6 @@ header {
   padding: 1em;
 
   .title {
-    border-bottom: 1px solid #eee;
     display: flex;
     width: 100%;
     justify-content: space-between;
@@ -124,6 +123,18 @@ header {
         &.hidden {
           opacity: 0;
           pointer-events: none;
+        }
+      }
+      .data-group,
+      .x-axis {
+        clip-path: url(#clip);
+      }
+      .disclaimer {
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.3s;
+        &.show {
+          opacity: 1;
         }
       }
       .data-point {
