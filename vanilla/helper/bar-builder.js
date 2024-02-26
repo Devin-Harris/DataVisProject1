@@ -69,9 +69,15 @@ class BarChart {
     // Define SVG drawing area
     this.svg = d3.select(this.config.parentElementSelector);
 
+    const extent = [
+      [0, 0],
+      [this.width, this.height],
+    ];
     this.zoom = d3
       .zoom()
       .scaleExtent([1, 1000])
+      .translateExtent(extent)
+      .extent(extent)
       .on('zoom', (event) => this.zoomed(event));
 
     this.svg.call(this.zoom);
@@ -175,11 +181,11 @@ class BarChart {
       );
 
     this.updateVis(false);
-    if (storedSelection[chartType.Bar]) {
-      this.chart
-        .transition()
-        .call(this.brush.move, storedSelection[chartType.Bar]);
-    }
+    //  if (storedSelection[chartType.Bar]) {
+    //    this.chart
+    //      .transition()
+    //      .call(this.brush.move, storedSelection[chartType.Bar]);
+    //  }
     requestAnimationFrame(() => {
       this.updateVis();
     });
