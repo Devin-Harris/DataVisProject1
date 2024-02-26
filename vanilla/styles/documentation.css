@@ -234,3 +234,15 @@ nav ul li a:hover {
     }
   }
 }
+
+#video {
+  .video-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    video {
+      width: 80%;
+      margin: 1em auto;
+    }
+  }
+}
